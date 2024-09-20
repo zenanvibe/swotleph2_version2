@@ -29,6 +29,9 @@ function Tables({ initialUsers }) {
     reportDownload: "",
   });
 
+  const handleView = (userId) => {
+    navigate(`/teammembers/profile/${userId}`); // Navigate to user profile page with their ID
+  };
   // Columns configuration for the DataTable
   const columns = [
     { Header: "User Name", accessor: "userName" },
@@ -36,6 +39,7 @@ function Tables({ initialUsers }) {
     { Header: "Date of Submission", accessor: "dateOfSubmission" },
     { Header: "Comment", accessor: "comment" },
     { Header: "Report Download", accessor: "reportDownload" },
+    { Header: "Actions", accessor: "actions" },
   ];
 
   const rows = users.map((user) => ({
@@ -44,8 +48,8 @@ function Tables({ initialUsers }) {
       <Button
         variant="outlined"
         color="primary"
-        onClick={() => window.open(user.handwriting.url || `"#"`, "_blank")}
-        disabled={!user.handwriting.url} // Disable if there's no file
+        onClick={() => window.open(user.handwriting.url || "#", "_blank")}
+        disabled={!user.handwriting.url}
         style={{ color: "black" }}
       >
         View Handwriting
@@ -63,6 +67,11 @@ function Tables({ initialUsers }) {
         style={{ color: "white" }}
       >
         Download Report
+      </Button>
+    ),
+    actions: (
+      <Button variant="contained" color="info" onClick={() => handleView(user.id)}>
+        View
       </Button>
     ),
   }));

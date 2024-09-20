@@ -45,7 +45,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
 
   // Define route names for Admin and User
   const adminRoutes = ["/admin/dashboard", "/admin/profile"];
-  const userRoutes = ["/dashboard"];
+  const userRoutes = ["/dashboard", "/interviewcandidate", "/teammembers"];
 
   // Filter routes based on the user role (Admin or Regular User)
   const filteredRoutes = routes.filter((route) => {

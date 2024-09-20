@@ -2,6 +2,8 @@
 import Dashboard from "layouts/dashboard";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
+import Interviewcandidate from "layouts/interviewcandidate/index";
+import Teammembers from "layouts/teammembers/index";
 
 //Admin
 import AdminSignIn from "layouts/adminauthentication/authentication/sign-in";
@@ -11,7 +13,7 @@ import AdminProfile from "layouts/profile/index";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
-import icon from "assets/theme/components/icon";
+// import icon from "assets/theme/components/icon";
 import UserProfile from "layouts/profile/components/Profiledetails";
 
 const routes = [
@@ -43,17 +45,17 @@ const routes = [
     type: "collapse",
     name: "Interview Candidate",
     key: "interview-candidate",
-    icon: <Icon fontSize="small">dashboard</Icon>,
-    route: "/dashboard",
-    component: <Dashboard />,
+    icon: <Icon fontSize="small">person</Icon>,
+    route: "/interviewcandidate",
+    component: <Interviewcandidate />,
   },
   {
     type: "collapse",
     name: "Team Members",
     key: "team-memebers",
-    icon: <Icon fontSize="small">dashboard</Icon>,
-    route: "/dashboard",
-    component: <Dashboard />,
+    icon: <Icon fontSize="small">groups</Icon>,
+    route: "/teammembers",
+    component: <Teammembers />,
   },
   {
     type: "collapse",

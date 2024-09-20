@@ -10,7 +10,7 @@ import DialogActions from "@mui/material/DialogActions"; // Import Dialog Action
 import DialogContent from "@mui/material/DialogContent"; // Import Dialog Content
 import DialogTitle from "@mui/material/DialogTitle"; // Import Dialog Title
 import TextField from "@mui/material/TextField"; // Import TextField
-
+import { Chip } from "@mui/material";
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -34,38 +34,63 @@ function Tables({ initialUsers }) {
     { Header: "User Name", accessor: "userName" },
     { Header: "Handwriting", accessor: "handwriting" },
     { Header: "Date of Submission", accessor: "dateOfSubmission" },
-    { Header: "Comment", accessor: "comment" },
+    { Header: "Suggestion", accessor: "suggestion" },
     { Header: "Report Download", accessor: "reportDownload" },
   ];
 
-  const rows = users.map((user) => ({
-    userName: user.userName,
-    handwriting: (
-      <Button
-        variant="outlined"
-        color="primary"
-        onClick={() => window.open(user.handwriting.url || `"#"`, "_blank")}
-        disabled={!user.handwriting.url} // Disable if there's no file
-        style={{ color: "black" }}
-      >
-        View Handwriting
-      </Button>
-    ),
-    dateOfSubmission: user.dateOfSubmission,
-    comment: user.comment || "No comment available",
-    reportDownload: (
-      <Button
-        variant="contained"
-        color="primary"
-        href={user.reportDownload}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ color: "white" }}
-      >
-        Download Report
-      </Button>
-    ),
-  }));
+  const rows = users.map((user, index) => {
+    // Track suggestion status for each user
+    const [suggestionStatus, setSuggestionStatus] = useState("Under Review");
+
+    return {
+      userName: user.userName,
+      handwriting: (
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => window.open(user.handwriting.url || "#", "_blank")}
+          disabled={!user.handwriting.url}
+          style={{ color: "black" }}
+        >
+          View Handwriting
+        </Button>
+      ),
+      dateOfSubmission: user.dateOfSubmission,
+      suggestion: (
+        <Chip
+          label={suggestionStatus}
+          color={
+            suggestionStatus === "Under Review"
+              ? "default"
+              : suggestionStatus === "Suggested"
+              ? "success"
+              : "warning" // Color for "Not Suggested"
+          }
+          clickable
+          onClick={() => {
+            setSuggestionStatus((prev) => {
+              if (prev === "Under Review") return "Suggested";
+              if (prev === "Suggested") return "Not Suggested";
+              return "Suggested"; // Loop back to "Suggested"
+            });
+          }}
+          style={{ cursor: "pointer", color: "white" }}
+        />
+      ),
+      reportDownload: (
+        <Button
+          variant="contained"
+          color="primary"
+          href={user.reportDownload}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "white" }}
+        >
+          Download Report
+        </Button>
+      ),
+    };
+  });
 
   // Open Dialog to Add User
   const handleClickOpen = () => {
