@@ -1,23 +1,58 @@
-// react-router-dom components
-import { Link } from "react-router-dom";
-
-// @mui material components
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Card from "@mui/material/Card";
-import Checkbox from "@mui/material/Checkbox";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-
-// Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
-
-// Images
 import bgImage from "assets/images/bg-sign-up-cover.jpeg";
+import API from "../../../api/config"; // Import the API base URL
 
 function Cover() {
+  const navigate = useNavigate();
+
+  // States for form inputs
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState(""); // Added phone number state
+  const [companyName, setCompanyName] = useState("");
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      name,
+      email,
+      phone, // Added phone to the payload
+      password,
+      company_name: companyName,
+    };
+
+    try {
+      const response = await fetch(`${API}auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Redirect to dashboard or another page
+        navigate("/dashboard");
+      } else {
+        console.error(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   return (
     <CoverLayout image={bgImage}>
       <Card>
@@ -40,43 +75,60 @@ function Cover() {
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
+          <MDBox component="form" role="form" onSubmit={handleSubmit}>
             <MDBox mb={2}>
-              <MDInput type="text" label="Name" variant="standard" fullWidth />
+              <MDInput
+                type="text"
+                label="Name"
+                variant="standard"
+                fullWidth
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="email" label="Email" variant="standard" fullWidth />
+              <MDInput
+                type="email"
+                label="Email"
+                variant="standard"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="password" label="Password" variant="standard" fullWidth />
+              <MDInput
+                type="password"
+                label="Password"
+                variant="standard"
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="text" label="Organization Name" variant="standard" fullWidth />
+              <MDInput
+                type="text"
+                label="Phone Number" // Added phone number input field
+                variant="standard"
+                fullWidth
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </MDBox>
-            {/* <MDBox display="flex" alignItems="center" ml={-1}>
-              <Checkbox />
-              <MDTypography
-                variant="button"
-                fontWeight="regular"
-                color="text"
-                sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-              >
-                &nbsp;&nbsp;I agree the&nbsp;
-              </MDTypography>
-              <MDTypography
-                component="a"
-                href="#"
-                variant="button"
-                fontWeight="bold"
-                color="info"
-                textGradient
-              >
-                Terms and Conditions
-              </MDTypography>
-            </MDBox> */}
+            <MDBox mb={2}>
+              <MDInput
+                type="text"
+                label="Organization Name"
+                variant="standard"
+                fullWidth
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+              />
+            </MDBox>
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" component={Link} to="/dashboard" color="info" fullWidth>
-                sign in
+              <MDButton variant="gradient" type="submit" color="info" fullWidth>
+                Sign Up
               </MDButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">

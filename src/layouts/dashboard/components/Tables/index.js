@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types"; // Import PropTypes
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -18,8 +18,8 @@ import MDTypography from "components/MDTypography";
 // Material Dashboard 2 React example components
 import DataTable from "examples/Tables/DataTable";
 
-function Tables({ initialUsers }) {
-  const [users, setUsers] = useState(initialUsers);
+function Tables() {
+  const [users, setUsers] = useState([]); // State for users
   const [open, setOpen] = useState(false); // State for dialog
   const [newUser, setNewUser] = useState({
     userName: "",
@@ -39,15 +39,15 @@ function Tables({ initialUsers }) {
   ];
 
   const rows = users.map((user) => ({
-    userName: user.userName,
-    handwriting: user.handwriting ? user.handwriting.name : "N/A",
-    dateOfSubmission: user.dateOfSubmission,
-    comment: user.comment || "No comment available",
+    userName: user.name,
+    handwriting: user.handwritting_url ? "Available" : "N/A",
+    dateOfSubmission: "N/A", // Placeholder, adjust if needed
+    comment: user.report_status || "No comment available",
     reportDownload: (
       <Button
         variant="contained"
         color="primary"
-        href={user.reportDownload}
+        href={user.handwritting_url}
         target="_blank"
         rel="noopener noreferrer"
         style={{ color: "white" }}
@@ -56,6 +56,34 @@ function Tables({ initialUsers }) {
       </Button>
     ),
   }));
+
+  // Fetch user data from API on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
+      const companyId = localStorage.getItem("company_id"); // Replace with actual company ID or logic
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/v2/company/${companyId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+        setUsers(data); // Set users state with fetched data
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Open Dialog to Add User
   const handleClickOpen = () => {

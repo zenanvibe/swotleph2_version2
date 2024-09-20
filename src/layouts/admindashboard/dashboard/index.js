@@ -1,5 +1,5 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import axios from "axios"; // Make sure axios is installed
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Tables from "./components/Tables";
@@ -12,60 +12,44 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BusinessIcon from "@mui/icons-material/Business";
 
 function Dashboard() {
-  // State to control modal and form data
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    userName: "",
-    handwriting: null,
-    dateOfSubmission: "",
+  // State to control data
+  const [stats, setStats] = useState({
+    totalCompanies: 0,
+    totalProfiles: 0,
+    totalProfilesCompleted: 0,
+    totalProfilesPending: 0,
   });
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
   const [users, setUsers] = useState([]); // Store the submitted users
 
-  // Functions to open and close modal
-  // const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  // Fetch the card data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/v2/card/dashboard/master", {
+          headers: {
+            Authorization:
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjI5LCJlbWFpbCI6ImFudG9qb2VsQGJyYW5kbWluZHouY29tIiwibmFtZSI6IkFudG8gSm9lbCIsInJvbGUiOiJjb21wYW55IiwiaWF0IjoxNzI2NzQwMDIxLCJleHAiOjE3MjczNDQ4MjF9.9xH76gTZz6kT3u3zSXimwko9lODXBPDclau1cloMf-I",
+          },
+        });
+        const data = response.data[0];
+        setStats({
+          totalCompanies: data.total_companies,
+          totalProfiles: data.total_profiles,
+          totalProfilesCompleted: data.total_profiles_completed,
+          totalProfilesPending: data.total_profiles_pending,
+        });
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch dashboard data");
+        setLoading(false);
+      }
+    };
 
-  // Handle input changes for form fields
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  // Handle file input changes
-  const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      handwriting: e.target.files[0],
-    });
-  };
-
-  // Handle form submission
-  const handleSubmit = () => {
-    // Add the form data to the users array
-    setUsers([...users, formData]);
-
-    // Reset form data for next user
-    setFormData({
-      userName: "",
-      handwriting: null,
-      dateOfSubmission: "",
-    });
-
-    // Close the modal after submission
-    handleClose();
-  };
-
-  const getCurrentDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed
-    const day = String(today.getDate()).padStart(2, "0");
-
-    return `${day}-${month}-${year}`; // Format as YYYY-MM-DD
-  };
+    fetchData();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -76,18 +60,18 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="dark"
-                icon={<BusinessIcon />} // Icon for Username
+                icon={<BusinessIcon />} // Icon for Total Companies
                 title="Total no. of Companies"
-                value="3"
+                value={loading ? "Loading..." : stats.totalCompanies}
               />
             </MDBox>
           </Grid>
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                icon={<AccountCircleIcon />} // Icon for Organization Name
+                icon={<AccountCircleIcon />} // Icon for Total Profiles
                 title="Total no. of Profiles"
-                value="18"
+                value={loading ? "Loading..." : stats.totalProfiles}
               />
             </MDBox>
           </Grid>
@@ -95,9 +79,9 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
-                icon={<PendingActionsIcon />} // Icon for Date of Login
+                icon={<PendingActionsIcon />} // Icon for Profiles Pending
                 title="Profile Pending"
-                value="4"
+                value={loading ? "Loading..." : stats.totalProfilesPending}
               />
             </MDBox>
           </Grid>
@@ -105,17 +89,16 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
-                icon={<GroupIcon />} // Icon for Number of Profiles Added
+                icon={<GroupIcon />} // Icon for Profiles Completed
                 title="Profile Completed"
-                value={14}
+                value={loading ? "Loading..." : stats.totalProfilesCompleted}
               />
             </MDBox>
           </Grid>
         </Grid>
+        {error && <div style={{ color: "red" }}>{error}</div>}
       </MDBox>
-      {/* Pass the user data to the Tables component */}
       <Tables users={users} />
-      {/* <Footer /> */}
     </DashboardLayout>
   );
 }

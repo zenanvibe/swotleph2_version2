@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 
@@ -12,51 +12,65 @@ import MDButton from "components/MDButton";
 import { useNavigate } from "react-router-dom";
 
 function Tables() {
-  // Sample data for the table
+  const [companies, setCompanies] = useState([]); // State to store company data
   const navigate = useNavigate();
-  const companies = [
-    {
-      id: 1,
-      companyName: "BrandMindz",
-      interviewCandidateCount: 5,
-      teamMemberCount: 12,
-    },
-    {
-      id: 2,
-      companyName: "Marine",
-      interviewCandidateCount: 3,
-      teamMemberCount: 9,
-    },
-    {
-      id: 3,
-      companyName: "Company",
-      interviewCandidateCount: 8,
-      teamMemberCount: 15,
-    },
-  ];
 
-  const handletoprofile = () => {};
+  // Fetch company data from API on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    const fetchCompanies = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/v2/company", {
+          method: "GET",
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch company data");
+        }
+
+        const data = await response.json();
+        setCompanies(data); // Update state with the fetched company data
+      } catch (error) {
+        console.error("Error fetching companies:", error);
+        alert("Failed to load company data.");
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
+  const handleViewClick = (companyId) => {
+    // Store the company ID in sessionStorage
+    sessionStorage.setItem("selectedCompanyId", companyId);
+
+    // Navigate to the profile page
+    navigate("/admin/profile");
+  };
 
   // Columns for the DataTable
   const columns = [
-    { Header: "Company", accessor: "companyName" },
-    { Header: "Interview Candidate", accessor: "interviewCandidateCount" },
-    { Header: "Team Member", accessor: "teamMemberCount" },
+    { Header: "Company", accessor: "company_name" },
+    { Header: "Interview Candidate", accessor: "number_of_candidates" },
+    { Header: "Team Member", accessor: "number_of_employees" },
     { Header: "Action", accessor: "actions" },
   ];
 
   // Rows data for the DataTable
   const rows = companies.map((company) => ({
-    companyName: company.companyName,
-    interviewCandidateCount: company.interviewCandidateCount,
-    teamMemberCount: company.teamMemberCount,
-    onclick: { handletoprofile },
+    company_name: company.company_name,
+    number_of_candidates: company.number_of_candidates,
+    number_of_employees: company.number_of_employees,
     actions: (
       <MDButton
         variant="contained"
         color="info"
         size="small"
-        onClick={() => navigate("/admin/profile")}
+        onClick={() => handleViewClick(company.company_id)}
       >
         View
       </MDButton>

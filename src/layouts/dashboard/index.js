@@ -1,9 +1,10 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
 import AddIcon from "@mui/icons-material/Add";
 import IconButton from "@mui/material/IconButton";
 import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { useState } from "react";
 import MDBox from "components/MDBox";
 import { Grid } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -17,7 +18,7 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import GroupIcon from "@mui/icons-material/Group";
 
 function Dashboard() {
-  // State to control modal and form data
+  const navigate = useNavigate(); // Initialize useNavigate for redirection
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     userName: "",
@@ -25,6 +26,12 @@ function Dashboard() {
     dateOfSubmission: "",
   });
   const [users, setUsers] = useState([]); // Store the submitted users
+  const [userInfo, setUserInfo] = useState({
+    userName: "",
+    companyName: "",
+    numberOfEmployees: 0,
+    numberOfCandidates: 0,
+  }); // Store fetched user info
 
   // Functions to open and close modal
   const handleOpen = () => setOpen(true);
@@ -69,32 +76,46 @@ function Dashboard() {
     const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed
     const day = String(today.getDate()).padStart(2, "0");
 
-    return `${day}-${month}-${year}`; // Format as YYYY-MM-DD
+    return `${day}-${month}-${year}`; // Format as DD-MM-YYYY
   };
 
-  const sampleUsers = [
-    {
-      userName: "Mani",
-      handwriting: { name: "Handwriting Test 1" },
-      dateOfSubmission: "2024-09-18",
-      comment: "Excellent handwriting with attention to detail.",
-      reportDownload: "/path/to/report1.pdf", // Demo report file path
-    },
-    {
-      userName: "Sundar",
-      handwriting: { name: "Handwriting Test 2" },
-      dateOfSubmission: "2024-09-17",
-      comment: "Handwriting could be improved for clarity.",
-      reportDownload: "/path/to/report2.pdf", // Demo report file path
-    },
-    {
-      userName: "Jegan",
-      handwriting: { name: "Handwriting Test 3" },
-      dateOfSubmission: "2024-09-16",
-      comment: "No handwriting submitted for evaluation.",
-      reportDownload: "/path/to/report3.pdf", // Demo report file path
-    },
-  ];
+  // Fetch user data from API
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId"); // Get userId from local storage
+
+    if (!token || !userId) {
+      navigate("/sign-in");
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/v2/card/dashboard/user/${userId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+        setUserInfo({
+          userName: data[0]?.user_name || "",
+          companyName: data[0]?.company_name || "",
+          numberOfEmployees: data[0]?.number_of_employees || 0,
+          numberOfCandidates: data[0]?.number_of_interview_candidates || 0,
+        });
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
 
   return (
     <DashboardLayout>
@@ -107,7 +128,7 @@ function Dashboard() {
                 color="dark"
                 icon={<AccountCircleIcon />} // Icon for Username
                 title="User Name"
-                value="Nivin"
+                value={userInfo.userName || "N/A"}
               />
             </MDBox>
           </Grid>
@@ -116,17 +137,17 @@ function Dashboard() {
               <ComplexStatisticsCard
                 icon={<BusinessIcon />} // Icon for Organization Name
                 title="Organization Name"
-                value="Brandmindz"
+                value={userInfo.companyName || "N/A"}
               />
             </MDBox>
           </Grid>
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                color="success"
-                icon={<CalendarTodayIcon />} // Icon for Date of Login
-                title="Date of Login"
-                value={getCurrentDate()}
+                color="primary"
+                icon={<GroupIcon />} // Icon for Number of Profiles Added
+                title="No of Interview Candidates Added"
+                value={userInfo.numberOfCandidates || 0}
               />
             </MDBox>
           </Grid>
@@ -136,20 +157,11 @@ function Dashboard() {
                 color="primary"
                 icon={<GroupIcon />} // Icon for Number of Profiles Added
                 title="No of Profiles Added"
-                value={45}
+                value={userInfo.numberOfCandidates || 0}
               />
             </MDBox>
           </Grid>
         </Grid>
-
-        {/* Add the Floating Button */}
-        {/* <IconButton
-          color="primary"
-          onClick={handleOpen}
-          style={{ position: "fixed", bottom: 16, right: 16 }}
-        >
-          <AddIcon />
-        </IconButton> */}
 
         {/* Modal for Adding User */}
         <Modal open={open} onClose={handleClose}>
@@ -205,7 +217,7 @@ function Dashboard() {
       </MDBox>
 
       {/* Pass the user data to the Tables component */}
-      <Tables initialUsers={sampleUsers} />
+      <Tables initialUsers={users} />
       {/* <Footer /> */}
     </DashboardLayout>
   );
