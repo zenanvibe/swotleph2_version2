@@ -25,12 +25,12 @@ function Dashboard() {
 
   // Fetch the card data on component mount
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const fetchData = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/v2/card/dashboard/master", {
           headers: {
-            Authorization:
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjI5LCJlbWFpbCI6ImFudG9qb2VsQGJyYW5kbWluZHouY29tIiwibmFtZSI6IkFudG8gSm9lbCIsInJvbGUiOiJjb21wYW55IiwiaWF0IjoxNzI2NzQwMDIxLCJleHAiOjE3MjczNDQ4MjF9.9xH76gTZz6kT3u3zSXimwko9lODXBPDclau1cloMf-I",
+            Authorization: token,
           },
         });
         const data = response.data[0];
