@@ -40,7 +40,16 @@ function Tables() {
 
   const rows = users.map((user) => ({
     userName: user.name,
-    handwriting: user.handwritting_url ? "Available" : "N/A",
+    handwriting: (
+      <Button
+        variant="contained"
+        color="secondary"
+        style={{ color: "white" }}
+        onClick={() => window.open(user.handwritting_url, "_blank")}
+      >
+        Download Handwriting
+      </Button>
+    ),
     dateOfSubmission: "N/A", // Placeholder, adjust if needed
     comment: user.report_status || "No comment available",
     reportDownload: (
@@ -209,26 +218,6 @@ function Tables() {
             value={newUser.dateOfSubmission}
             onChange={handleInputChange}
           />
-          {/* <TextField
-            margin="dense"
-            name="comment"
-            label="Comment"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={newUser.comment}
-            onChange={handleInputChange}
-          />
-          <TextField
-            margin="dense"
-            name="reportDownload"
-            label="Report Download URL"
-            type="url"
-            fullWidth
-            variant="outlined"
-            value={newUser.reportDownload}
-            onChange={handleInputChange}
-          /> */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="secondary">

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios"; // Make sure axios is installed
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Tables from "./components/Tables";
@@ -28,17 +27,25 @@ function Dashboard() {
     const token = localStorage.getItem("token");
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/v2/card/dashboard/master", {
+        const response = await fetch("http://localhost:5000/api/v2/card/dashboard/master", {
+          method: "GET",
           headers: {
             Authorization: token,
           },
         });
-        const data = response.data[0];
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const data = await response.json();
+        const dashboardData = data[0];
+
         setStats({
-          totalCompanies: data.total_companies,
-          totalProfiles: data.total_profiles,
-          totalProfilesCompleted: data.total_profiles_completed,
-          totalProfilesPending: data.total_profiles_pending,
+          totalCompanies: dashboardData.total_companies,
+          totalProfiles: dashboardData.total_profiles,
+          totalProfilesCompleted: dashboardData.total_profiles_completed,
+          totalProfilesPending: dashboardData.total_profiles_pending,
         });
         setLoading(false);
       } catch (err) {
