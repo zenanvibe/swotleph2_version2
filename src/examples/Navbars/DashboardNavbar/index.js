@@ -57,7 +57,11 @@ function DashboardNavbar({ absolute, light, isMini, role }) {
   // Logic to handle logout based on the user's role
   const handleLogout = () => {
     // Clear user-related data (if needed, such as tokens, localStorage)
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("company_id");
+    localStorage.removeItem("authenticated");
+    localStorage.removeItem("roles");
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
 
     // Conditional navigation based on role
     if (isAdmin) {

@@ -1,16 +1,18 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types"; // Import PropTypes
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import Button from "@mui/material/Button"; // Import Button for report download
-import IconButton from "@mui/material/IconButton"; // Import IconButton
-import AddIcon from "@mui/icons-material/Add"; // Import Add Icon
-import Dialog from "@mui/material/Dialog"; // Import Dialog
-import DialogActions from "@mui/material/DialogActions"; // Import Dialog Actions
-import DialogContent from "@mui/material/DialogContent"; // Import Dialog Content
-import DialogTitle from "@mui/material/DialogTitle"; // Import Dialog Title
-import TextField from "@mui/material/TextField"; // Import TextField
-import { Chip } from "@mui/material";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import AddIcon from "@mui/icons-material/Add";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import TextField from "@mui/material/TextField";
+import Chip from "@mui/material/Chip";
+import { useNavigate } from "react-router-dom"; // Import useHistory to navigate
+
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -18,79 +20,123 @@ import MDTypography from "components/MDTypography";
 // Material Dashboard 2 React example components
 import DataTable from "examples/Tables/DataTable";
 
-function Tables({ initialUsers }) {
-  const [users, setUsers] = useState(initialUsers);
+function Tables() {
+  const [users, setUsers] = useState([]); // State for users
   const [open, setOpen] = useState(false); // State for dialog
+  const history = useNavigate(); // Hook for navigation to user profile page
   const [newUser, setNewUser] = useState({
     userName: "",
     handwriting: "",
     dateOfSubmission: "",
-    comment: "",
-    reportDownload: "",
   });
 
   // Columns configuration for the DataTable
   const columns = [
-    { Header: "User Name", accessor: "userName" },
+    { Header: "User Name", accessor: "name" },
     { Header: "Handwriting", accessor: "handwriting" },
     { Header: "Date of Submission", accessor: "dateOfSubmission" },
-    { Header: "Suggestion", accessor: "suggestion" },
-    { Header: "Report Download", accessor: "reportDownload" },
+    { Header: "Report Status", accessor: "report_status" },
+    { Header: "Actions", accessor: "actions" }, // Actions for profile and report download
   ];
 
-  const rows = users.map((user, index) => {
-    // Track suggestion status for each user
-    const [suggestionStatus, setSuggestionStatus] = useState("Under Review");
-
-    return {
-      userName: user.userName,
-      handwriting: (
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => window.open(user.handwriting.url || "#", "_blank")}
-          disabled={!user.handwriting.url}
-          style={{ color: "black" }}
-        >
-          View Handwriting
-        </Button>
-      ),
-      dateOfSubmission: user.dateOfSubmission,
-      suggestion: (
-        <Chip
-          label={suggestionStatus}
-          color={
-            suggestionStatus === "Under Review"
-              ? "default"
-              : suggestionStatus === "Suggested"
-              ? "success"
-              : "warning" // Color for "Not Suggested"
-          }
-          clickable
-          onClick={() => {
-            setSuggestionStatus((prev) => {
-              if (prev === "Under Review") return "Suggested";
-              if (prev === "Suggested") return "Not Suggested";
-              return "Suggested"; // Loop back to "Suggested"
-            });
-          }}
-          style={{ cursor: "pointer", color: "white" }}
-        />
-      ),
-      reportDownload: (
+  // Mapping fetched users to the table rows
+  const rows = users.map((user) => ({
+    name: user.name, // User's name from API response
+    handwriting: (
+      <Button
+        variant="outlined"
+        color="primary"
+        onClick={() => window.open(user.handwritting_url || "#", "_blank")}
+        disabled={!user.handwritting_url}
+        style={{ color: "black" }}
+      >
+        View Handwriting
+      </Button>
+    ),
+    dateOfSubmission: user.dob || "N/A", // Use dob if available
+    report_status: (
+      <Chip
+        label={user.report_status}
+        color={user.report_status === "pending" ? "warning" : "success"} // Color chip based on status
+      />
+    ),
+    actions: (
+      <>
+        {/* View Profile Button */}
         <Button
           variant="contained"
-          color="primary"
-          href={user.reportDownload}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: "white" }}
+          color="info"
+          onClick={() => history(`/profile/${user.user_id}`)}
+          style={{ marginRight: 8 }}
+        >
+          View Profile
+        </Button>
+
+        {/* Download Report Button */}
+        <Button
+          variant="contained"
+          color="success"
+          onClick={() => handleReportDownload(user.user_id)}
+          disabled={user.report_status === "pending"} // Disable if report is not ready
         >
           Download Report
         </Button>
-      ),
+      </>
+    ),
+  }));
+
+  // Fetch user data from API on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
+      const companyId = localStorage.getItem("company_id");
+
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/v2/company/staff/${companyId}?role=candidate`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+        setUsers(data); // Set users state with fetched data
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
     };
-  });
+
+    fetchData();
+  }, []);
+
+  // Function to download report
+  const handleReportDownload = (userId) => {
+    const token = localStorage.getItem("token");
+    fetch(`http://localhost:5000/api/v2/reports/download/${userId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `${token}`,
+      },
+    })
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `report_${userId}.pdf`); // Define the download name
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+      })
+      .catch((error) => console.error("Error downloading report:", error));
+  };
 
   // Open Dialog to Add User
   const handleClickOpen = () => {
@@ -102,14 +148,12 @@ function Tables({ initialUsers }) {
     setOpen(false);
   };
 
-  // Handle form submission
+  // Handle form submission for adding a new user
   const handleSubmit = () => {
     const newUserData = {
-      userName: newUser.userName,
+      name: newUser.userName,
       handwriting: { name: newUser.handwriting },
       dateOfSubmission: newUser.dateOfSubmission,
-      // comment: newUser.comment,
-      // reportDownload: newUser.reportDownload,
     };
 
     setUsers([...users, newUserData]); // Add new user to users state
@@ -118,12 +162,10 @@ function Tables({ initialUsers }) {
       userName: "",
       handwriting: "",
       dateOfSubmission: "",
-      // comment: "",
-      // reportDownload: "",
     }); // Reset input fields
   };
 
-  // Handle input changes
+  // Handle input changes for form fields
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewUser((prev) => ({ ...prev, [name]: value }));
@@ -202,7 +244,6 @@ function Tables({ initialUsers }) {
               }));
             }}
           />
-
           <TextField
             margin="dense"
             name="dateOfSubmission"
@@ -216,26 +257,6 @@ function Tables({ initialUsers }) {
             value={newUser.dateOfSubmission}
             onChange={handleInputChange}
           />
-          {/* <TextField
-            margin="dense"
-            name="comment"
-            label="Comment"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={newUser.comment}
-            onChange={handleInputChange}
-          />
-          <TextField
-            margin="dense"
-            name="reportDownload"
-            label="Report Download URL"
-            type="url"
-            fullWidth
-            variant="outlined"
-            value={newUser.reportDownload}
-            onChange={handleInputChange}
-          /> */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="secondary">
@@ -249,18 +270,5 @@ function Tables({ initialUsers }) {
     </MDBox>
   );
 }
-
-// Adding prop types validation for users
-Tables.propTypes = {
-  initialUsers: PropTypes.arrayOf(
-    PropTypes.shape({
-      userName: PropTypes.string.isRequired,
-      handwriting: PropTypes.object, // Since it can be a file object
-      dateOfSubmission: PropTypes.string.isRequired,
-      comment: PropTypes.string,
-      reportDownload: PropTypes.string,
-    })
-  ).isRequired,
-};
 
 export default Tables;

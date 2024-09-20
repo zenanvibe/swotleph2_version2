@@ -10,6 +10,7 @@ import DialogActions from "@mui/material/DialogActions"; // Import Dialog Action
 import DialogContent from "@mui/material/DialogContent"; // Import Dialog Content
 import DialogTitle from "@mui/material/DialogTitle"; // Import Dialog Title
 import TextField from "@mui/material/TextField"; // Import TextField
+import Chip from "@mui/material/Chip";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -38,6 +39,19 @@ function Tables() {
     { Header: "Report Download", accessor: "reportDownload" },
   ];
 
+  const getChipColor = (comment) => {
+    switch (comment) {
+      case "Approved":
+        return "success"; // Green color
+      case "Pending":
+        return "warning"; // Yellow color
+      case "Rejected":
+        return "error"; // Red color
+      default:
+        return "default"; // Default color for other comments
+    }
+  };
+
   const rows = users.map((user) => ({
     userName: user.name,
     handwriting: (
@@ -51,7 +65,12 @@ function Tables() {
       </Button>
     ),
     dateOfSubmission: "N/A", // Placeholder, adjust if needed
-    comment: user.report_status || "No comment available",
+    comment: (
+      <Chip
+        label={user.report_status || "No comment available"}
+        color={getChipColor(user.report_status)}
+      />
+    ),
     reportDownload: (
       <Button
         variant="contained"
@@ -73,7 +92,7 @@ function Tables() {
       const companyId = localStorage.getItem("company_id"); // Replace with actual company ID or logic
 
       try {
-        const response = await fetch(`http://localhost:5000/api/v2/company/${companyId}`, {
+        const response = await fetch(`http://localhost:5000/api/v2/company/staff/${companyId}`, {
           method: "GET",
           headers: {
             Authorization: `${token}`,

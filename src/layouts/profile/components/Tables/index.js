@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import navigate function
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -11,44 +11,67 @@ import DataTable from "examples/Tables/DataTable";
 
 function Tables() {
   const navigate = useNavigate(); // Hook for navigation
-  const [users] = useState([
-    {
-      id: 1,
-      userName: "Mani",
-      dateOfSubmission: "2024-08-01",
-      dateOfReportDelivered: "2024-08-05",
-    },
-    {
-      id: 2,
-      userName: "Sundar",
-      dateOfSubmission: "2024-07-25",
-      dateOfReportDelivered: "2024-07-29",
-    },
-    {
-      id: 3,
-      userName: "Jegan",
-      dateOfSubmission: "2024-09-01",
-      dateOfReportDelivered: "2024-09-05",
-    },
-  ]);
+  const [users, setUsers] = useState([]); // State to store user data
 
+  // Fetch users based on the selected company ID
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const selectedCompanyId = sessionStorage.getItem("selectedCompanyId");
+      const token = localStorage.getItem("token"); // Get JWT token from localStorage
+
+      if (selectedCompanyId) {
+        try {
+          const response = await fetch(
+            `http://localhost:5000/api/v2/company/staff/${selectedCompanyId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: token,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+
+          const data = await response.json();
+          setUsers(data); // Update state with the fetched user data
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          alert("Failed to load user data.");
+        }
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // Function to handle "View" button click
   const handleView = (userId) => {
-    navigate(`/admin/profile/profiledetails/${userId}`); // Navigate to user profile page with their ID
+    // Store the user ID in sessionStorage
+    sessionStorage.setItem("selectedUserId", userId);
+
+    // Navigate to user profile details page
+    navigate(`/admin/profile/profiledetails/${userId}`);
   };
 
   const columns = [
-    { Header: "Name", accessor: "userName" },
-    { Header: "Date of Submission", accessor: "dateOfSubmission" },
-    { Header: "Date of Report Delivered", accessor: "dateOfReportDelivered" },
+    { Header: "Name", accessor: "name" },
+    { Header: "Email", accessor: "email" },
+    { Header: "Phone", accessor: "phone" },
+    { Header: "Role", accessor: "role" },
     { Header: "Actions", accessor: "actions" },
   ];
 
   const rows = users.map((user) => ({
-    userName: <span>{user.userName}</span>,
-    dateOfSubmission: user.dateOfSubmission,
-    dateOfReportDelivered: user.dateOfReportDelivered,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
     actions: (
-      <Button variant="contained" color="info" onClick={() => handleView(user.id)}>
+      <Button variant="contained" color="info" onClick={() => handleView(user.user_id)}>
         View
       </Button>
     ),
