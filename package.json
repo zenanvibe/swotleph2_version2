@@ -7,11 +7,11 @@
   "description": "React version of Material Dashboard 2 by Creative Tim",
   "dependencies": {
     "@emotion/cache": "11.10.8",
-    "@emotion/react": "^11.10.8",
-    "@emotion/styled": "^11.10.8",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^5.11.16",
     "@mui/lab": "^6.0.0-beta.10",
-    "@mui/material": "^5.12.3",
+    "@mui/material": "^5.16.7",
     "chart.js": "4.3.0",
     "chroma-js": "2.4.2",
     "prop-types": "^15.8.1",
@@ -23,7 +23,7 @@
     "react-scripts": "5.0.1",
     "react-table": "7.8.0",
     "stylis": "4.1.4",
-    "stylis-plugin-rtl": "2.1.1",
+    "stylis-plugin-rtl": "^2.1.1",
     "yup": "1.1.1"
   },
   "scripts": {

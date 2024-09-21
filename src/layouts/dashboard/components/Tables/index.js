@@ -1,56 +1,42 @@
 import React, { useState, useEffect } from "react";
-import PropTypes from "prop-types"; // Import PropTypes
+import { useNavigate } from "react-router-dom"; // Import useNavigate hook
+import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import Button from "@mui/material/Button"; // Import Button for report download
-import IconButton from "@mui/material/IconButton"; // Import IconButton
-import AddIcon from "@mui/icons-material/Add"; // Import Add Icon
-import Dialog from "@mui/material/Dialog"; // Import Dialog
-import DialogActions from "@mui/material/DialogActions"; // Import Dialog Actions
-import DialogContent from "@mui/material/DialogContent"; // Import Dialog Content
-import DialogTitle from "@mui/material/DialogTitle"; // Import Dialog Title
-import TextField from "@mui/material/TextField"; // Import TextField
-import Chip from "@mui/material/Chip";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import AddIcon from "@mui/icons-material/Add";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import TextField from "@mui/material/TextField";
 
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-
-// Material Dashboard 2 React example components
 import DataTable from "examples/Tables/DataTable";
 
 function Tables() {
-  const [users, setUsers] = useState([]); // State for users
-  const [open, setOpen] = useState(false); // State for dialog
+  const [users, setUsers] = useState([]);
+  const [open, setOpen] = useState(false);
   const [newUser, setNewUser] = useState({
-    userName: "",
-    handwriting: "",
+    name: "",
+    username: "",
+    email: "",
+    phone: "",
     dateOfSubmission: "",
-    comment: "",
-    reportDownload: "",
+    file: null,
   });
+
+  const navigate = useNavigate(); // Initialize navigate hook
 
   // Columns configuration for the DataTable
   const columns = [
     { Header: "User Name", accessor: "userName" },
     { Header: "Handwriting", accessor: "handwriting" },
     { Header: "Date of Submission", accessor: "dateOfSubmission" },
-    { Header: "Comment", accessor: "comment" },
-    { Header: "Report Download", accessor: "reportDownload" },
+    { Header: "Actions", accessor: "actions" }, // New Actions column
   ];
-
-  const getChipColor = (comment) => {
-    switch (comment) {
-      case "Approved":
-        return "success"; // Green color
-      case "Pending":
-        return "warning"; // Yellow color
-      case "Rejected":
-        return "error"; // Red color
-      default:
-        return "default"; // Default color for other comments
-    }
-  };
 
   const rows = users.map((user) => ({
     userName: user.name,
@@ -64,23 +50,15 @@ function Tables() {
         Download Handwriting
       </Button>
     ),
-    dateOfSubmission: "N/A", // Placeholder, adjust if needed
-    comment: (
-      <Chip
-        label={user.report_status || "No comment available"}
-        color={getChipColor(user.report_status)}
-      />
-    ),
-    reportDownload: (
+    dateOfSubmission: user.dateofsubmission,
+    actions: (
       <Button
         variant="contained"
         color="primary"
-        href={user.handwritting_url}
-        target="_blank"
-        rel="noopener noreferrer"
         style={{ color: "white" }}
+        onClick={() => navigate(`/userprofile/${user.user_id}`)} // Navigate to user profile using navigate
       >
-        Download Report
+        View
       </Button>
     ),
   }));
@@ -89,7 +67,7 @@ function Tables() {
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("token");
-      const companyId = localStorage.getItem("company_id"); // Replace with actual company ID or logic
+      const companyId = localStorage.getItem("company_id");
 
       try {
         const response = await fetch(`http://localhost:5000/api/v2/company/staff/${companyId}`, {
@@ -104,7 +82,7 @@ function Tables() {
         }
 
         const data = await response.json();
-        setUsers(data); // Set users state with fetched data
+        setUsers(data);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -124,24 +102,54 @@ function Tables() {
   };
 
   // Handle form submission
-  const handleSubmit = () => {
-    const newUserData = {
-      userName: newUser.userName,
-      handwriting: { name: newUser.handwriting },
-      dateOfSubmission: newUser.dateOfSubmission,
-      // comment: newUser.comment,
-      // reportDownload: newUser.reportDownload,
-    };
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    const company_id = localStorage.getItem("company_id");
+    formData.append("name", newUser.name);
+    formData.append("username", newUser.username);
+    formData.append("email", newUser.email);
+    formData.append("phone", newUser.phone);
+    formData.append("company_id", company_id);
+    formData.append("dateofsubmission", newUser.dateOfSubmission);
+    if (newUser.file) {
+      formData.append("file", newUser.file);
+    }
 
-    setUsers([...users, newUserData]); // Add new user to users state
-    setOpen(false); // Close dialog after submitting
-    setNewUser({
-      userName: "",
-      handwriting: "",
-      dateOfSubmission: "",
-      // comment: "",
-      // reportDownload: "",
-    }); // Reset input fields
+    try {
+      const response = await fetch("http://localhost:5000/api/v2/auth/employee/signup", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+
+      // Add the new user data to the users state
+      setUsers((prevUsers) => [
+        ...prevUsers,
+        {
+          name: data.name,
+          handwritting_url: data.handwriting_url,
+          dateofsubmission: data.dateofsubmission,
+          report_status: data.report_status || "Pending",
+        },
+      ]);
+
+      setOpen(false);
+      setNewUser({
+        name: "",
+        username: "",
+        email: "",
+        phone: "",
+        dateOfSubmission: "",
+        file: null,
+      });
+    } catch (error) {
+      console.error("Error adding user:", error);
+    }
   };
 
   // Handle input changes
@@ -194,36 +202,45 @@ function Tables() {
         <DialogTitle>Add New User</DialogTitle>
         <DialogContent>
           <TextField
-            autoFocus
             margin="dense"
-            name="userName"
-            label="User Name"
+            name="name"
+            label="Full Name"
             type="text"
             fullWidth
             variant="outlined"
-            value={newUser.userName}
+            value={newUser.name}
             onChange={handleInputChange}
           />
           <TextField
             margin="dense"
-            name="handwriting"
-            label="Handwriting Upload"
-            type="file"
+            name="username"
+            label="Username"
+            type="text"
             fullWidth
             variant="outlined"
-            InputLabelProps={{
-              shrink: true,
-            }}
-            onChange={(e) => {
-              // Update the state to store the file, not text
-              const file = e.target.files[0];
-              setNewUser((prev) => ({
-                ...prev,
-                handwriting: file,
-              }));
-            }}
+            value={newUser.username}
+            onChange={handleInputChange}
           />
-
+          <TextField
+            margin="dense"
+            name="email"
+            label="Email"
+            type="email"
+            fullWidth
+            variant="outlined"
+            value={newUser.email}
+            onChange={handleInputChange}
+          />
+          <TextField
+            margin="dense"
+            name="phone"
+            label="Phone"
+            type="tel"
+            fullWidth
+            variant="outlined"
+            value={newUser.phone}
+            onChange={handleInputChange}
+          />
           <TextField
             margin="dense"
             name="dateOfSubmission"
@@ -236,6 +253,24 @@ function Tables() {
             variant="outlined"
             value={newUser.dateOfSubmission}
             onChange={handleInputChange}
+          />
+          <TextField
+            margin="dense"
+            name="file"
+            label="Handwriting Upload"
+            type="file"
+            fullWidth
+            variant="outlined"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            onChange={(e) => {
+              const file = e.target.files[0];
+              setNewUser((prev) => ({
+                ...prev,
+                file: file,
+              }));
+            }}
           />
         </DialogContent>
         <DialogActions>
@@ -256,9 +291,8 @@ Tables.propTypes = {
   initialUsers: PropTypes.arrayOf(
     PropTypes.shape({
       userName: PropTypes.string.isRequired,
-      handwriting: PropTypes.object, // Since it can be a file object
+      handwriting: PropTypes.object,
       dateOfSubmission: PropTypes.string.isRequired,
-      comment: PropTypes.string,
       reportDownload: PropTypes.string,
     })
   ).isRequired,
