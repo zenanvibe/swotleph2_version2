@@ -16,6 +16,9 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BusinessIcon from "@mui/icons-material/Business";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import GroupIcon from "@mui/icons-material/Group";
+import API from "../../api/config"; // Import API base URL
+
+
 
 function Dashboard() {
   const navigate = useNavigate(); // Initialize useNavigate for redirection
@@ -91,7 +94,7 @@ function Dashboard() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/v2/card/dashboard/user/${userId}`, {
+        const response = await fetch(`${API}card/dashboard/user/${userId}`, {
           method: "GET",
           headers: {
             Authorization: `${token}`,

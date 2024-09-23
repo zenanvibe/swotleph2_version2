@@ -10,6 +10,7 @@ import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
 import MDButton from "components/MDButton";
 import { useNavigate } from "react-router-dom";
+import API from "../../../../../api/config"; // Import API base URL
 
 function Tables() {
   const [companies, setCompanies] = useState([]); // State to store company data
@@ -21,7 +22,7 @@ function Tables() {
 
     const fetchCompanies = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/v2/company", {
+        const response = await fetch(`${API}company`, {
           method: "GET",
           headers: {
             Authorization: token,

@@ -11,10 +11,11 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
-
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
+import API from "../../../../api/config"; // Import API base URL
+
 
 function Tables() {
   const [users, setUsers] = useState([]); // State to hold users list
@@ -70,7 +71,7 @@ function Tables() {
     const companyId = localStorage.getItem("company_id");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/v2/company/staff/${companyId}`, {
+      const response = await fetch(`${API}company/staff/${companyId}`, {
         method: "GET",
         headers: {
           Authorization: `${token}`,
@@ -108,7 +109,7 @@ function Tables() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/v2/auth/employee/signup", {
+      const response = await fetch(`${API}auth/employee/signup`, {
         method: "POST",
         body: formData,
       });

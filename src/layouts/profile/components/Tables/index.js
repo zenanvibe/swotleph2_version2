@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"; // Import navigate function
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
+import API from "../../../../api/config"; // Import API base URL
 
 // Other necessary imports
 import MDBox from "components/MDBox";
@@ -22,7 +23,7 @@ function Tables() {
       if (selectedCompanyId) {
         try {
           const response = await fetch(
-            `http://localhost:5000/api/v2/company/staff/${selectedCompanyId}`,
+            `${API}company/staff/${selectedCompanyId}`,
             {
               method: "GET",
               headers: {

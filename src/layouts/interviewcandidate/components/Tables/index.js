@@ -12,6 +12,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import Chip from "@mui/material/Chip";
 import { useNavigate } from "react-router-dom"; // Import useHistory to navigate
+import API from "../../../../api/config"; // Import API base URL
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -93,7 +94,7 @@ function Tables() {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/v2/company/staff/${companyId}?role=candidate`,
+          `${API}company/staff/${companyId}?role=candidate`,
           {
             method: "GET",
             headers: {
@@ -119,7 +120,7 @@ function Tables() {
   // Function to download report
   const handleReportDownload = (userId) => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/v2/reports/download/${userId}`, {
+    fetch(`${API}reports/download/${userId}`, {
       method: "GET",
       headers: {
         Authorization: `${token}`,

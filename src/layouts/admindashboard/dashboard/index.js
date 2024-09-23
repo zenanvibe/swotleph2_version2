@@ -9,6 +9,9 @@ import GroupIcon from "@mui/icons-material/Group";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BusinessIcon from "@mui/icons-material/Business";
+import API from "../../../api/config"; // Import API base URL
+
+
 
 function Dashboard() {
   // State to control data
@@ -27,7 +30,7 @@ function Dashboard() {
     const token = localStorage.getItem("token");
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/v2/card/dashboard/master", {
+        const response = await fetch(`${API}card/dashboard/master`, {
           method: "GET",
           headers: {
             Authorization: token,

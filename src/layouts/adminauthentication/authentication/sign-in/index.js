@@ -10,6 +10,8 @@ import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
 import BasicLayout from "layouts/authentication/components/BasicLayout";
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import API from "../../../../api/config"; // Import API base URL
+
 
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
@@ -22,7 +24,7 @@ function Basic() {
   // Sign-in handler with API call using fetch
   const handleSignIn = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/v2/auth/login", {
+      const response = await fetch(`${API}auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

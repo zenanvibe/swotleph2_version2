@@ -16,6 +16,8 @@ import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { Box } from "@mui/material";
+import API from "../../../../api/config"; // Import API base URL
+
 
 function UserProfile() {
   const { id } = useParams(); // Get user id from URL
@@ -28,7 +30,7 @@ function UserProfile() {
     const fetchUserData = async () => {
       const token = localStorage.getItem("token"); // Get token from localStorage
       try {
-        const response = await fetch(`http://localhost:5000/api/v2/users/${id}`, {
+        const response = await fetch(`${API}users/${id}`, {
           method: "GET",
           headers: {
             Authorization: token ? `${token}` : "",
@@ -44,7 +46,7 @@ function UserProfile() {
     const fetchComments = async () => {
       const token = localStorage.getItem("token");
       try {
-        const response = await fetch(`http://localhost:5000/api/v2/comments/getcomments/${id}`, {
+        const response = await fetch(`${API}comments/getcomments/${id}`, {
           method: "GET",
           headers: {
             Authorization: token ? `${token}` : "",
@@ -70,7 +72,7 @@ function UserProfile() {
     const token = localStorage.getItem("token");
     const authorId = localStorage.getItem("userId");
     try {
-      const response = await fetch("http://localhost:5000/api/v2/comments/add", {
+      const response = await fetch(`${API}comments/add`, {
         method: "POST",
         headers: {
           Authorization: token ? `${token}` : "",
