@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate hook
+import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -17,8 +17,8 @@ import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
 
 function Tables() {
-  const [users, setUsers] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [users, setUsers] = useState([]); // State to hold users list
+  const [open, setOpen] = useState(false); // Dialog open state
   const [newUser, setNewUser] = useState({
     name: "",
     username: "",
@@ -35,8 +35,9 @@ function Tables() {
     { Header: "User Name", accessor: "userName" },
     { Header: "Handwriting", accessor: "handwriting" },
     { Header: "Date of Submission", accessor: "dateOfSubmission" },
-    { Header: "Actions", accessor: "actions" }, // New Actions column
+    { Header: "Actions", accessor: "actions" },
   ];
+  // console.log(users);
 
   const rows = users.map((user) => ({
     userName: user.name,
@@ -45,7 +46,7 @@ function Tables() {
         variant="contained"
         color="secondary"
         style={{ color: "white" }}
-        onClick={() => window.open(user.handwritting_url, "_blank")}
+        onClick={() => window.open(user.handwriting_url, "_blank")}
       >
         Download Handwriting
       </Button>
@@ -56,52 +57,43 @@ function Tables() {
         variant="contained"
         color="primary"
         style={{ color: "white" }}
-        onClick={() => navigate(`/userprofile/${user.user_id}`)} // Navigate to user profile using navigate
+        onClick={() => navigate(`/userprofile/${user.user_id}`)}
       >
         View
       </Button>
     ),
   }));
 
-  // Fetch user data from API on component mount
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem("token");
-      const companyId = localStorage.getItem("company_id");
+  // Function to fetch user data
+  const fetchUsers = async () => {
+    const token = localStorage.getItem("token");
+    const companyId = localStorage.getItem("company_id");
 
-      try {
-        const response = await fetch(`http://localhost:5000/api/v2/company/staff/${companyId}`, {
-          method: "GET",
-          headers: {
-            Authorization: `${token}`,
-          },
-        });
+    try {
+      const response = await fetch(`http://localhost:5000/api/v2/company/staff/${companyId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const data = await response.json();
-        setUsers(data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
       }
-    };
 
-    fetchData();
+      const data = await response.json();
+      setUsers(data); // Set the users list in state
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  // Fetch user data when component mounts
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
-  // Open Dialog to Add User
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  // Close Dialog
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  // Handle form submission
+  // Handle form submission to add a new user
   const handleSubmit = async () => {
     const formData = new FormData();
     const company_id = localStorage.getItem("company_id");
@@ -124,21 +116,23 @@ function Tables() {
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-
       const data = await response.json();
 
-      // Add the new user data to the users state
+      // Assuming the server response contains the file URL as `fileUrl`
+      const uploadedFileUrl = data.fileUrl;
+
       setUsers((prevUsers) => [
         ...prevUsers,
         {
-          name: data.name,
-          handwritting_url: data.handwriting_url,
-          dateofsubmission: data.dateofsubmission,
-          report_status: data.report_status || "Pending",
+          ...newUser,
+          handwriting_url: uploadedFileUrl, // Store the file URL
         },
       ]);
 
-      setOpen(false);
+      // After successful submission, refetch the updated user list
+      await fetchUsers();
+
+      // Reset the form
       setNewUser({
         name: "",
         username: "",
@@ -147,6 +141,7 @@ function Tables() {
         dateOfSubmission: "",
         file: null,
       });
+      setOpen(false); // Close the dialog
     } catch (error) {
       console.error("Error adding user:", error);
     }
@@ -156,6 +151,16 @@ function Tables() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewUser((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Open Dialog to Add User
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  // Close Dialog
+  const handleClose = () => {
+    setOpen(false);
   };
 
   return (
@@ -286,7 +291,6 @@ function Tables() {
   );
 }
 
-// Adding prop types validation for users
 Tables.propTypes = {
   initialUsers: PropTypes.arrayOf(
     PropTypes.shape({

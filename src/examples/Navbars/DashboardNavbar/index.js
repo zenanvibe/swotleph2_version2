@@ -107,6 +107,13 @@ function DashboardNavbar({ absolute, light, isMini, role }) {
             title={getBreadcrumbTitle()} // Dynamically sets the title
             route={route}
             light={light}
+            onClick={() => {
+              if (isAdmin) {
+                navigate("/admin/dashboard"); // Navigate to admin dashboard if the user is an admin
+              } else {
+                navigate("/dashboard"); // Navigate to user dashboard for non-admin users
+              }
+            }}
           />
         </MDBox>
 

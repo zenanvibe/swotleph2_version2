@@ -115,7 +115,7 @@ function UserProfile() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar role="admin" />
+      <DashboardNavbar role="dashboard" />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={3}>
           {/* User Details */}
@@ -158,6 +158,14 @@ function UserProfile() {
                       sx={{ fontWeight: "bold", fontSize: "1rem" }}
                     />
                   </MDTypography>
+                  <Button
+                    color="primary"
+                    sx={{
+                      marginTop: 2,
+                    }} // Add spacing between status and the button
+                  >
+                    Download Report
+                  </Button>
                 </Grid>
               </Grid>
             </Card>

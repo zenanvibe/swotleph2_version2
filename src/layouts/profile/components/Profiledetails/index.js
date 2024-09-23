@@ -158,6 +158,14 @@ function UserProfile() {
                       sx={{ fontWeight: "bold", fontSize: "1rem" }}
                     />
                   </MDTypography>
+                  <Button
+                    color="primary"
+                    sx={{
+                      marginTop: 2,
+                    }} // Add spacing between status and the button
+                  >
+                    Upload Report
+                  </Button>
                 </Grid>
               </Grid>
             </Card>
