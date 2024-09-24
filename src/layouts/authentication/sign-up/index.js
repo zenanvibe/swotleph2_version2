@@ -108,7 +108,7 @@ function Cover() {
             </MDBox>
             <MDBox mb={2}>
               <MDInput
-                type="text"
+                type="tel"
                 label="Phone Number" // Added phone number input field
                 variant="standard"
                 fullWidth
