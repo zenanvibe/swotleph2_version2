@@ -93,15 +93,12 @@ function Tables() {
       const companyId = localStorage.getItem("company_id");
 
       try {
-        const response = await fetch(
-          `${API}company/staff/${companyId}?role=candidate`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${API}company/staff/${companyId}?role=candidate`, {
+          method: "GET",
+          headers: {
+            Authorization: `${token}`,
+          },
+        });
 
         if (!response.ok) {
           throw new Error("Network response was not ok");

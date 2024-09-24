@@ -11,8 +11,6 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BusinessIcon from "@mui/icons-material/Business";
 import API from "../../../api/config"; // Import API base URL
 
-
-
 function Dashboard() {
   // State to control data
   const [stats, setStats] = useState({

@@ -22,16 +22,13 @@ function Tables() {
 
       if (selectedCompanyId) {
         try {
-          const response = await fetch(
-            `${API}company/staff/${selectedCompanyId}`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: token,
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          const response = await fetch(`${API}company/staff/${selectedCompanyId}`, {
+            method: "GET",
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+          });
 
           if (!response.ok) {
             throw new Error("Failed to fetch user data");

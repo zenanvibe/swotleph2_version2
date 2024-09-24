@@ -18,7 +18,6 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { Box } from "@mui/material";
 import API from "../../../../api/config"; // Import API base URL
 
-
 function UserProfile() {
   const { id } = useParams(); // Get user id from URL
   const [user, setUser] = useState(null);

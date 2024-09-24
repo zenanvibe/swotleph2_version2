@@ -16,7 +16,6 @@ import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
 import API from "../../../../api/config"; // Import API base URL
 
-
 function Tables() {
   const [users, setUsers] = useState([]); // State to hold users list
   const [open, setOpen] = useState(false); // Dialog open state
