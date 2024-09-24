@@ -46,7 +46,9 @@ function Tables() {
         variant="contained"
         color="secondary"
         style={{ color: "white" }}
-        onClick={() => window.open(user.handwriting_url, "_blank")}
+        component="a"
+        href="/src/assets/pdf/19CS5704 OOAD -ASS-4- (8-11-22).pdf" // Path to the PDF file
+        download="OOAD_Assignment.pdf" // Filename for the downloaded file
       >
         Download Handwriting
       </Button>
