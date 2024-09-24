@@ -16,7 +16,6 @@ import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
 import API from "../../../../api/config"; // Import API base URL
 
-
 function Tables() {
   const [users, setUsers] = useState([]); // State to hold users list
   const [open, setOpen] = useState(false); // Dialog open state
@@ -47,7 +46,9 @@ function Tables() {
         variant="contained"
         color="secondary"
         style={{ color: "white" }}
-        onClick={() => window.open(user.handwriting_url, "_blank")}
+        component="a"
+        href="/src/assets/pdf/19CS5704 OOAD -ASS-4- (8-11-22).pdf" // Path to the PDF file
+        download="OOAD_Assignment.pdf" // Filename for the downloaded file
       >
         Download Handwriting
       </Button>

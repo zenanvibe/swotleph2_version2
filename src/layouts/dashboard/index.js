@@ -18,8 +18,6 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import GroupIcon from "@mui/icons-material/Group";
 import API from "../../api/config"; // Import API base URL
 
-
-
 function Dashboard() {
   const navigate = useNavigate(); // Initialize useNavigate for redirection
   const [open, setOpen] = useState(false);
