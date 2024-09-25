@@ -9,9 +9,10 @@ import { useNavigate } from "react-router-dom";
 const Landing = () => {
   const navigate = useNavigate();
 
-  const handlesignin = () => {
-    navigate("/sign-in");
+  const handleSignUp = () => {
+    navigate("/sign-up");
   };
+
   return (
     <Box
       sx={{
@@ -40,7 +41,8 @@ const Landing = () => {
               color: "#1a202c",
             }}
           >
-            Landing In Swotle
+            Welcome to Swotle <br />
+            Discover Your Team Through Graphology
           </Typography>
           <Typography
             variant="body1"
@@ -49,10 +51,7 @@ const Landing = () => {
               marginBottom: 3,
             }}
           >
-            Graphology is the study of handwriting as a unique reflection of an individual’s
-            personality, character traits, and emotions. Through the analysis of pen strokes,
-            spacing, and movement, graphology provides insights into cognitive and emotional
-            patterns, offering a deeper understanding of human behavior and identity.
+            Unlock deeper insights into your team’s personality and performance.
           </Typography>
           <Button
             variant="contained"
@@ -64,9 +63,9 @@ const Landing = () => {
                 backgroundColor: "#4F46E5",
               },
             }}
-            onClick={handlesignin}
+            onClick={handleSignUp}
           >
-            GEt into sign in
+            Sign Up Today and Transform the Way You Work!
           </Button>
         </Box>
       </Container>
