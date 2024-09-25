@@ -128,7 +128,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="dark"
                 icon={<AccountCircleIcon />} // Icon for Username
-                title="User Name"
+                title="Name"
                 value={userInfo.userName || "N/A"}
               />
             </MDBox>
@@ -137,7 +137,7 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 icon={<BusinessIcon />} // Icon for Organization Name
-                title="Organization Name"
+                title="Organization"
                 value={userInfo.companyName || "N/A"}
               />
             </MDBox>
@@ -147,7 +147,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="primary"
                 icon={<GroupIcon />} // Icon for Number of Profiles Added
-                title="No of Interview Candidates Added"
+                title="Candidates"
                 value={userInfo.numberOfCandidates || 0}
               />
             </MDBox>
@@ -157,8 +157,8 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="primary"
                 icon={<GroupIcon />} // Icon for Number of Profiles Added
-                title="No of Profiles Added"
-                value={userInfo.numberOfCandidates || 0}
+                title="Employees"
+                value={userInfo.numberOfEmployees || 0}
               />
             </MDBox>
           </Grid>

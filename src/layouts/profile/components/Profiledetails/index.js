@@ -15,7 +15,14 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import { Box } from "@mui/material";
+import {
+  Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 import API from "../../../../api/config"; // Import API base URL
 
 function UserProfile() {
@@ -23,6 +30,8 @@ function UserProfile() {
   const [user, setUser] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [openModal, setOpenModal] = useState(false); // State to manage modal visibility
+  const [selectedFile, setSelectedFile] = useState(null); // State for selected file
 
   // Fetch user details on component mount
   useEffect(() => {
@@ -36,6 +45,7 @@ function UserProfile() {
           },
         });
         const userData = await response.json();
+        console.log(userData);
         setUser(userData[0]); // Assuming the API returns an array
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -67,6 +77,58 @@ function UserProfile() {
     return <div>Loading...</div>;
   }
 
+  // Handle file selection
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+
+  // Handle file upload
+  const handleFileUpload = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!selectedFile) {
+      alert("Please select a file first.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("id", id); // Append the user ID to the form data
+
+    try {
+      const response = await fetch(`${API}storage/upload/report`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Error uploading file");
+      }
+
+      const result = await response.json();
+      console.log("File uploaded successfully:", result);
+
+      // Close the modal after successful upload
+      setOpenModal(false);
+      setSelectedFile(null); // Reset file input
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+  };
+
+  // Function to open the file upload modal
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  // Function to close the modal
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
     const authorId = localStorage.getItem("userId");
@@ -90,7 +152,6 @@ function UserProfile() {
 
       const addedComment = await response.json();
 
-      // Ensure comments is always an array
       setComments((prevComments) =>
         Array.isArray(prevComments) ? [...prevComments, addedComment] : [addedComment]
       );
@@ -103,9 +164,9 @@ function UserProfile() {
 
   const statusColor = (status) => {
     switch (status) {
-      case "active":
+      case "completed":
         return "success";
-      case "inactive":
+      case "review":
         return "default";
       case "pending":
         return "warning";
@@ -154,16 +215,17 @@ function UserProfile() {
                   <MDTypography variant="body1">
                     <strong>Status: </strong>
                     <Chip
-                      label={user.status}
-                      color={statusColor(user.status)}
+                      label={user.report_status}
+                      color={statusColor(user.report_status)}
                       sx={{ fontWeight: "bold", fontSize: "1rem" }}
                     />
                   </MDTypography>
                   <Button
                     color="primary"
+                    onClick={handleOpenModal} // Open the modal on click
                     sx={{
                       marginTop: 2,
-                    }} // Add spacing between status and the button
+                    }}
                   >
                     Upload Report
                   </Button>
@@ -172,7 +234,6 @@ function UserProfile() {
             </Card>
           </Grid>
 
-          {/* Comment Timeline */}
           {/* Comment Timeline */}
           <Grid item xs={12}>
             <Card>
@@ -240,6 +301,23 @@ function UserProfile() {
           </Grid>
         </Grid>
       </MDBox>
+
+      {/* Modal for File Upload */}
+      <Dialog open={openModal} onClose={handleCloseModal}>
+        <DialogTitle>Upload Report</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Please choose the report file you want to upload.</DialogContentText>
+          <input type="file" onChange={handleFileChange} style={{ marginTop: "20px" }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseModal} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleFileUpload} color="primary">
+            Upload
+          </Button>
+        </DialogActions>
+      </Dialog>
     </DashboardLayout>
   );
 }

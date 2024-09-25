@@ -24,7 +24,8 @@ function Tables() {
     username: "",
     email: "",
     phone: "",
-    dateOfSubmission: "",
+    role: "",
+    gender: "",
     file: null,
   });
 
@@ -32,37 +33,37 @@ function Tables() {
 
   // Columns configuration for the DataTable
   const columns = [
-    { Header: "User Name", accessor: "userName" },
-    { Header: "Handwriting", accessor: "handwriting" },
+    { Header: "Name", accessor: "name" },
+    { Header: "Role", accessor: "role" },
     { Header: "Date of Submission", accessor: "dateOfSubmission" },
     { Header: "Actions", accessor: "actions" },
   ];
-  // console.log(users);
 
   const rows = users.map((user) => ({
-    userName: user.name,
-    handwriting: (
-      <Button
-        variant="contained"
-        color="secondary"
-        style={{ color: "white" }}
-        component="a"
-        href="/src/assets/pdf/19CS5704 OOAD -ASS-4- (8-11-22).pdf" // Path to the PDF file
-        download="OOAD_Assignment.pdf" // Filename for the downloaded file
-      >
-        Download Handwriting
-      </Button>
-    ),
-    dateOfSubmission: user.dateofsubmission,
+    name: user.name,
+    role: user.role,
+    dateOfSubmission: new Date(user.dateofsubmission).toLocaleDateString("en-IN"), // Format date to IST
     actions: (
-      <Button
-        variant="contained"
-        color="primary"
-        style={{ color: "white" }}
-        onClick={() => navigate(`/userprofile/${user.user_id}`)}
-      >
-        View
-      </Button>
+      <>
+        <Button
+          variant="contained"
+          color="secondary"
+          style={{ color: "white" }}
+          component="a"
+          href={user.handwritting_url} // Use the URL from the API response
+          download={`${user.name}_Handwriting.png`} // Filename for the downloaded file
+        >
+          Download Handwriting
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          style={{ color: "white", marginLeft: "8px" }}
+          onClick={() => navigate(`/userprofile/${user.user_id}`)} // Update to the correct path for user profile
+        >
+          View
+        </Button>
+      </>
     ),
   }));
 
@@ -75,7 +76,7 @@ function Tables() {
       const response = await fetch(`${API}company/staff/${companyId}`, {
         method: "GET",
         headers: {
-          Authorization: `${token}`,
+          Authorization: token,
         },
       });
 
@@ -98,20 +99,26 @@ function Tables() {
   // Handle form submission to add a new user
   const handleSubmit = async () => {
     const formData = new FormData();
-    const company_id = localStorage.getItem("company_id");
+    const token = localStorage.getItem("token");
+    const companyId = localStorage.getItem("company_id");
+
+    // Append form data
     formData.append("name", newUser.name);
-    formData.append("username", newUser.username);
     formData.append("email", newUser.email);
     formData.append("phone", newUser.phone);
-    formData.append("company_id", company_id);
-    formData.append("dateofsubmission", newUser.dateOfSubmission);
+    formData.append("company_id", companyId);
+    formData.append("role", newUser.role); // Assuming role field is added to form
+    formData.append("gender", newUser.gender); // Assuming gender field is added to form
     if (newUser.file) {
       formData.append("file", newUser.file);
     }
 
     try {
-      const response = await fetch(`${API}auth/employee/signup`, {
+      const response = await fetch(`${API}auth/dashboard/employee/signup`, {
         method: "POST",
+        headers: {
+          Authorization: token,
+        },
         body: formData,
       });
 
@@ -120,9 +127,10 @@ function Tables() {
       }
       const data = await response.json();
 
-      // Assuming the server response contains the file URL as `fileUrl`
+      // Assuming the server response contains the file URL as fileUrl
       const uploadedFileUrl = data.fileUrl;
 
+      // Update users state with the new user and file URL
       setUsers((prevUsers) => [
         ...prevUsers,
         {
@@ -131,7 +139,7 @@ function Tables() {
         },
       ]);
 
-      // After successful submission, refetch the updated user list
+      // Refetch the updated user list
       await fetchUsers();
 
       // Reset the form
@@ -140,7 +148,8 @@ function Tables() {
         username: "",
         email: "",
         phone: "",
-        dateOfSubmission: "",
+        role: "",
+        gender: "",
         file: null,
       });
       setOpen(false); // Close the dialog
@@ -220,16 +229,6 @@ function Tables() {
           />
           <TextField
             margin="dense"
-            name="username"
-            label="Username"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={newUser.username}
-            onChange={handleInputChange}
-          />
-          <TextField
-            margin="dense"
             name="email"
             label="Email"
             type="email"
@@ -248,19 +247,46 @@ function Tables() {
             value={newUser.phone}
             onChange={handleInputChange}
           />
+
+          {/* Role Field */}
           <TextField
             margin="dense"
-            name="dateOfSubmission"
-            label="Date of Submission"
-            type="date"
+            name="role"
+            label="Role"
+            select
             fullWidth
-            InputLabelProps={{
-              shrink: true,
-            }}
             variant="outlined"
-            value={newUser.dateOfSubmission}
+            value={newUser.role}
             onChange={handleInputChange}
-          />
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="" />
+            <option value="candidate">Candidate</option>
+            <option value="employee">Employee</option>
+          </TextField>
+
+          {/* Gender Dropdown */}
+          <TextField
+            margin="dense"
+            name="gender"
+            label="Gender"
+            select
+            fullWidth
+            variant="outlined"
+            value={newUser.gender}
+            onChange={handleInputChange}
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="" />
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </TextField>
+
           <TextField
             margin="dense"
             name="file"
@@ -280,6 +306,7 @@ function Tables() {
             }}
           />
         </DialogContent>
+
         <DialogActions>
           <Button onClick={handleClose} color="secondary">
             Cancel
