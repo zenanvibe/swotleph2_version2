@@ -69,7 +69,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="dark"
                 icon={<BusinessIcon />} // Icon for Total Companies
-                title="Total no. of Companies"
+                title="Companies"
                 value={loading ? "Loading..." : stats.totalCompanies}
               />
             </MDBox>
@@ -78,7 +78,7 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 icon={<AccountCircleIcon />} // Icon for Total Profiles
-                title="Total no. of Profiles"
+                title="Profiles"
                 value={loading ? "Loading..." : stats.totalProfiles}
               />
             </MDBox>
@@ -88,7 +88,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="success"
                 icon={<PendingActionsIcon />} // Icon for Profiles Pending
-                title="Profile Pending"
+                title="Pending"
                 value={loading ? "Loading..." : stats.totalProfilesPending}
               />
             </MDBox>
@@ -98,7 +98,7 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="primary"
                 icon={<GroupIcon />} // Icon for Profiles Completed
-                title="Profile Completed"
+                title="Completed"
                 value={loading ? "Loading..." : stats.totalProfilesCompleted}
               />
             </MDBox>

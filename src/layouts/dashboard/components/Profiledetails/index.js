@@ -101,9 +101,23 @@ function UserProfile() {
     }
   };
 
+  const handleDownloadReport = () => {
+    if (user.report_url) {
+      const link = document.createElement("a");
+      link.href = user.report_url;
+      link.target = "_blank"; // Open in new tab (optional)
+      link.download = ""; // This attribute is optional, but can help in some cases
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.error("No report URL available.");
+    }
+  };
+
   const statusColor = (status) => {
     switch (status) {
-      case "active":
+      case "completed":
         return "success";
       case "inactive":
         return "default";
@@ -154,13 +168,14 @@ function UserProfile() {
                   <MDTypography variant="body1">
                     <strong>Status: </strong>
                     <Chip
-                      label={user.status}
-                      color={statusColor(user.status)}
+                      label={user.report_status}
+                      color={statusColor(user.report_status)}
                       sx={{ fontWeight: "bold", fontSize: "1rem" }}
                     />
                   </MDTypography>
                   <Button
                     color="primary"
+                    onClick={handleDownloadReport}
                     sx={{
                       marginTop: 2,
                     }} // Add spacing between status and the button
