@@ -1,9 +1,10 @@
 // Material Dashboard 2 React layouts
+import Landing from "layouts/landing/Landing";
 import Dashboard from "layouts/dashboard";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
-import Interviewcandidate from "layouts/interviewcandidate/index";
-import Teammembers from "layouts/teammembers/index";
+// import Interviewcandidate from "layouts/interviewcandidate/index";
+// import Teammembers from "layouts/teammembers/index";
 
 //Admin
 import AdminSignIn from "layouts/adminauthentication/authentication/sign-in";
