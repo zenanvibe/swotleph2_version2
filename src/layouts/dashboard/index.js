@@ -126,7 +126,7 @@ function Dashboard() {
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                color="dark"
+                color="primary"
                 icon={<AccountCircleIcon />} // Icon for Username
                 title="Name"
                 value={userInfo.userName || "N/A"}
@@ -136,6 +136,7 @@ function Dashboard() {
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
+                color="primary"
                 icon={<BusinessIcon />} // Icon for Organization Name
                 title="Organization"
                 value={userInfo.companyName || "N/A"}

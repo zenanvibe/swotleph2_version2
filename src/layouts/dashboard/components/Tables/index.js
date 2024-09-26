@@ -57,8 +57,7 @@ function Tables() {
         </Button>
         <Button
           variant="contained"
-          color="primary"
-          style={{ color: "white", marginLeft: "8px" }}
+          style={{ color: "white", marginLeft: "8px", backgroundColor: "#E4003A" }}
           onClick={() => navigate(`/userprofile/${user.user_id}`)} // Update to the correct path for user profile
         >
           View
@@ -185,11 +184,10 @@ function Tables() {
               py={3}
               px={2}
               variant="gradient"
-              bgColor="info"
               borderRadius="lg"
-              coloredShadow="info"
               display="flex"
               justifyContent="space-between"
+              sx={{ backgroundColor: "#E4003A" }}
             >
               <MDTypography variant="h6" color="white">
                 Users Table
