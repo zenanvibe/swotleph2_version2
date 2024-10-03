@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -82,17 +82,6 @@ function DashboardNavbar({ absolute, light, isMini, role }) {
     return "Dashboard"; // Default title for non-admin users
   };
 
-  // Styles for the navbar icons
-  const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-    color: () => {
-      let colorValue = light || darkMode ? white.main : dark.main;
-      if (transparentNavbar && !light) {
-        colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
-      }
-      return colorValue;
-    },
-  });
-
   return (
     <AppBar
       position={absolute ? "absolute" : navbarType}
@@ -107,13 +96,7 @@ function DashboardNavbar({ absolute, light, isMini, role }) {
             title={getBreadcrumbTitle()} // Dynamically sets the title
             route={route}
             light={light}
-            onClick={() => {
-              if (isAdmin) {
-                navigate("/admin/dashboard"); // Navigate to admin dashboard if the user is an admin
-              } else {
-                navigate("/dashboard"); // Navigate to user dashboard for non-admin users
-              }
-            }}
+            isAdmin={isAdmin} // Pass isAdmin to Breadcrumbs
           />
         </MDBox>
 
@@ -121,7 +104,7 @@ function DashboardNavbar({ absolute, light, isMini, role }) {
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
             <MDBox color={light ? "white" : "inherit"}>
               <IconButton sx={navbarIconButton} size="small" disableRipple onClick={handleOpenMenu}>
-                <Icon sx={iconsStyle}>account_circle</Icon>
+                <Icon sx={{ color: light ? "white" : "dark" }}>account_circle</Icon>
               </IconButton>
 
               <Menu
@@ -131,8 +114,6 @@ function DashboardNavbar({ absolute, light, isMini, role }) {
                 anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
               >
-                {/* <MenuItem onClick={() => navigate("/admin/profile")}>Profile</MenuItem> */}
-                {/* Logout button calls handleLogout */}
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>
 
@@ -143,7 +124,7 @@ function DashboardNavbar({ absolute, light, isMini, role }) {
                 sx={navbarMobileMenu}
                 onClick={handleMiniSidenav}
               >
-                <Icon sx={iconsStyle} fontSize="medium">
+                <Icon sx={{ color: light ? "white" : "dark" }} fontSize="medium">
                   {miniSidenav ? "menu_open" : "menu"}
                 </Icon>
               </IconButton>

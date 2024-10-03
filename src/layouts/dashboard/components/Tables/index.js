@@ -45,7 +45,7 @@ function Tables() {
     dateOfSubmission: new Date(user.dateofsubmission).toLocaleDateString("en-IN"), // Format date to IST
     actions: (
       <>
-        <Button
+        {/* <Button
           variant="contained"
           color="secondary"
           style={{ color: "white" }}
@@ -54,7 +54,7 @@ function Tables() {
           download={`${user.name}_Handwriting.png`} // Filename for the downloaded file
         >
           Download Handwriting
-        </Button>
+        </Button> */}
         <Button
           variant="contained"
           style={{ color: "white", marginLeft: "8px", backgroundColor: "#E4003A" }}

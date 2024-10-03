@@ -1,34 +1,22 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// react-router-dom components
-import { Link } from "react-router-dom";
-
-// prop-types is a library for typechecking of props.
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import PropTypes from "prop-types";
-
-// @mui material components
 import { Breadcrumbs as MuiBreadcrumbs } from "@mui/material";
 import Icon from "@mui/material/Icon";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-function Breadcrumbs({ icon, title, route, light }) {
+function Breadcrumbs({ icon, title, route, light, isAdmin }) {
+  const navigate = useNavigate(); // Use the useNavigate hook
   const routes = route.slice(0, -1);
+
+  const handleHomeClick = (event) => {
+    event.preventDefault(); // Prevent the default link behavior
+    if (isAdmin) {
+      navigate("/admin/sign-in"); // Navigate to admin sign-in
+    } else {
+      navigate("/sign-in"); // Navigate to user sign-in
+    }
+  };
 
   return (
     <MDBox mr={{ xs: 0, xl: 8 }}>
@@ -39,7 +27,7 @@ function Breadcrumbs({ icon, title, route, light }) {
           },
         }}
       >
-        <Link to="/">
+        <Link to="#" onClick={handleHomeClick}>
           <MDTypography
             component="span"
             variant="body2"
@@ -51,7 +39,7 @@ function Breadcrumbs({ icon, title, route, light }) {
           </MDTypography>
         </Link>
         {routes.map((el) => (
-          <Link to={`/${el}`} key={el}>
+          <Link to={isAdmin ? "/admin/dashboard" : "/dashboard"} key={el}>
             <MDTypography
               component="span"
               variant="button"
@@ -88,17 +76,16 @@ function Breadcrumbs({ icon, title, route, light }) {
   );
 }
 
-// Setting default values for the props of Breadcrumbs
 Breadcrumbs.defaultProps = {
   light: false,
 };
 
-// Typechecking props for the Breadcrumbs
 Breadcrumbs.propTypes = {
   icon: PropTypes.node.isRequired,
   title: PropTypes.string.isRequired,
   route: PropTypes.oneOfType([PropTypes.string, PropTypes.array]).isRequired,
   light: PropTypes.bool,
+  isAdmin: PropTypes.bool.isRequired, // New prop to indicate if the user is an admin
 };
 
 export default Breadcrumbs;
