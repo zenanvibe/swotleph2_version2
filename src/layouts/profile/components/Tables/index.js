@@ -55,6 +55,8 @@ function Tables() {
     fetchUsers();
   }, []);
 
+  console.log(users);
+
   // Function to handle "View" button click
   const handleView = (userId) => {
     // Store the user ID in sessionStorage
@@ -186,8 +188,8 @@ function Tables() {
         <Button
           variant="contained"
           color="info"
-          href="https://example.com/path/to/sample_file.png" // Replace with your actual file URL
-          download={`sample_file.png`}
+          href={user.report_url} // Replace with your actual file URL
+          download={`${user.name}.handwriting`}
           style={{ marginRight: "14px" }}
         >
           <DownloadIcon style={{ marginRight: "4px" }} /> {/* Add the icon here */}

@@ -15,6 +15,8 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 import {
   Box,
   Dialog,
@@ -25,6 +27,10 @@ import {
 } from "@mui/material";
 import API from "../../../../api/config"; // Import API base URL
 
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
 function UserProfile() {
   const { id } = useParams(); // Get user id from URL
   const [user, setUser] = useState(null);
@@ -32,6 +38,7 @@ function UserProfile() {
   const [newComment, setNewComment] = useState("");
   const [openModal, setOpenModal] = useState(false); // State to manage modal visibility
   const [selectedFile, setSelectedFile] = useState(null); // State for selected file
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   // Fetch user details on component mount
   useEffect(() => {
@@ -110,6 +117,7 @@ function UserProfile() {
 
       const result = await response.json();
       console.log("File uploaded successfully:", result);
+      setOpenSnackbar(true);
 
       // Close the modal after successful upload
       setOpenModal(false);
@@ -117,6 +125,13 @@ function UserProfile() {
     } catch (error) {
       console.error("Error uploading file:", error);
     }
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
   };
 
   // Function to open the file upload modal
@@ -318,6 +333,13 @@ function UserProfile() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for upload success message */}
+      <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity="success">
+          Report uploaded successfully!
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

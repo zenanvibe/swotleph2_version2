@@ -11,6 +11,8 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
+import Snackbar from "@mui/material/Snackbar"; // Import Snackbar
+import Alert from "@mui/material/Alert"; // Import Alert
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
@@ -19,6 +21,10 @@ import API from "../../../../api/config"; // Import API base URL
 function Tables() {
   const [users, setUsers] = useState([]); // State to hold users list
   const [open, setOpen] = useState(false); // Dialog open state
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar open state
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar message
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Snackbar severity level (success, error, etc.)
+
   const [newUser, setNewUser] = useState({
     name: "",
     username: "",
@@ -45,16 +51,6 @@ function Tables() {
     dateOfSubmission: new Date(user.dateofsubmission).toLocaleDateString("en-IN"), // Format date to IST
     actions: (
       <>
-        {/* <Button
-          variant="contained"
-          color="secondary"
-          style={{ color: "white" }}
-          component="a"
-          href={user.handwritting_url} // Use the URL from the API response
-          download={`${user.name}_Handwriting.png`} // Filename for the downloaded file
-        >
-          Download Handwriting
-        </Button> */}
         <Button
           variant="contained"
           style={{ color: "white", marginLeft: "8px", backgroundColor: "#E4003A" }}
@@ -141,6 +137,13 @@ function Tables() {
       // Refetch the updated user list
       await fetchUsers();
 
+      // Show success Snackbar
+      setSnackbarMessage("User added successfully!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+
+      console.log("Success: User added");
+
       // Reset the form
       setNewUser({
         name: "",
@@ -154,6 +157,10 @@ function Tables() {
       setOpen(false); // Close the dialog
     } catch (error) {
       console.error("Error adding user:", error);
+      // Show error Snackbar
+      setSnackbarMessage("Error adding user. Please try again.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -171,6 +178,11 @@ function Tables() {
   // Close Dialog
   const handleClose = () => {
     setOpen(false);
+  };
+
+  // Close Snackbar
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -314,6 +326,18 @@ function Tables() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for success/error messages */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </MDBox>
   );
 }

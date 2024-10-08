@@ -106,7 +106,7 @@ function UserProfile() {
       const link = document.createElement("a");
       link.href = user.report_url;
       link.target = "_blank"; // Open in new tab (optional)
-      link.download = ""; // This attribute is optional, but can help in some cases
+      link.download = `${user.name}.report`; // This attribute is optional, but can help in some cases
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
