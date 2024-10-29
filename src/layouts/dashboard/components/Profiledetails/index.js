@@ -96,6 +96,7 @@ function UserProfile() {
       );
 
       setNewComment("");
+      window.location.reload();
     } catch (error) {
       console.error("Error adding comment:", error);
     }

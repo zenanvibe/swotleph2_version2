@@ -1,28 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Import navigate function
+import { useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit"; // Edit icon
-import DeleteIcon from "@mui/icons-material/Delete"; // Delete icon
-import API from "../../../../api/config"; // Import API base URL
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
+import API from "../../../../api/config";
 
-// Other necessary imports
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
 
 function Tables() {
-  const navigate = useNavigate(); // Hook for navigation
-  const [users, setUsers] = useState([]); // State to store user data
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [page, setPage] = useState(0); // Changed to 0-based indexing
+  const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch users based on the selected company ID
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoading(true);
       const selectedCompanyId = sessionStorage.getItem("selectedCompanyId");
-      const token = localStorage.getItem("token"); // Get JWT token from localStorage
+      const token = localStorage.getItem("token");
 
       if (selectedCompanyId) {
         try {
@@ -39,15 +41,16 @@ function Tables() {
           }
 
           const data = await response.json();
-          // Initialize isEditing for each user
           const usersWithEditing = data.map((user) => ({
             ...user,
-            isEditing: { name: false, email: false, phone: false, role: false }, // Initialize editing states
+            isEditing: { name: false, email: false, phone: false, role: false },
           }));
-          setUsers(usersWithEditing); // Update state with the fetched user data
+          setUsers(usersWithEditing);
         } catch (error) {
           console.error("Error fetching users:", error);
           alert("Failed to load user data.");
+        } finally {
+          setLoading(false);
         }
       }
     };
@@ -55,35 +58,47 @@ function Tables() {
     fetchUsers();
   }, []);
 
-  console.log(users);
+  // Pagination calculations
+  const startIndex = page * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedUsers = users.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(users.length / pageSize);
 
-  // Function to handle "View" button click
+  // Handle page change
+  const handlePageChange = (newPage) => {
+    setPage(newPage - 1); // Convert 1-based to 0-based indexing
+  };
+
+  // Handle entries per page change
+  const handleEntriesPerPageChange = (event) => {
+    const newPageSize = parseInt(event.target.value, 10);
+    setPageSize(newPageSize);
+    setPage(0); // Reset to first page when changing page size
+  };
+
   const handleView = (userId) => {
-    // Store the user ID in sessionStorage
     sessionStorage.setItem("selectedUserId", userId);
-
-    // Navigate to user profile details page
     navigate(`/admin/profile/profiledetails/${userId}`);
   };
 
-  // Handle edit and delete actions
   const handleEdit = (index, field) => {
+    const globalIndex = startIndex + index;
     const updatedUsers = [...users];
-    updatedUsers[index].isEditing[field] = true; // Set the field to be editable
+    updatedUsers[globalIndex].isEditing[field] = true;
     setUsers(updatedUsers);
   };
 
   const handleSave = (index, field) => {
+    const globalIndex = startIndex + index;
     const updatedUsers = [...users];
-    updatedUsers[index].isEditing[field] = false; // Stop editing
-    // You can make API call here to save changes if needed
+    updatedUsers[globalIndex].isEditing[field] = false;
     setUsers(updatedUsers);
   };
 
   const handleDelete = (index) => {
-    const updatedUsers = users.filter((_, i) => i !== index); // Remove user from the list
+    const globalIndex = startIndex + index;
+    const updatedUsers = users.filter((_, i) => i !== globalIndex);
     setUsers(updatedUsers);
-    // You can make API call here to delete user if needed
   };
 
   const columns = [
@@ -94,7 +109,7 @@ function Tables() {
     { Header: "Actions", accessor: "actions" },
   ];
 
-  const rows = users.map((user, index) => ({
+  const rows = paginatedUsers.map((user, index) => ({
     name: (
       <>
         {user.isEditing.name ? (
@@ -103,7 +118,12 @@ function Tables() {
               type="text"
               defaultValue={user.name}
               style={{ padding: 5 }}
-              onChange={(e) => (user.name = e.target.value)} // Update name in real-time
+              onChange={(e) => {
+                const globalIndex = startIndex + index;
+                const updatedUsers = [...users];
+                updatedUsers[globalIndex].name = e.target.value;
+                setUsers(updatedUsers);
+              }}
             />
             <Button onClick={() => handleSave(index, "name")}>Save</Button>
           </>
@@ -125,7 +145,12 @@ function Tables() {
               type="email"
               defaultValue={user.email}
               style={{ padding: 5 }}
-              onChange={(e) => (user.email = e.target.value)} // Update email in real-time
+              onChange={(e) => {
+                const globalIndex = startIndex + index;
+                const updatedUsers = [...users];
+                updatedUsers[globalIndex].email = e.target.value;
+                setUsers(updatedUsers);
+              }}
             />
             <Button onClick={() => handleSave(index, "email")}>Save</Button>
           </>
@@ -147,7 +172,12 @@ function Tables() {
               type="tel"
               defaultValue={user.phone}
               style={{ padding: 5 }}
-              onChange={(e) => (user.phone = e.target.value)} // Update phone in real-time
+              onChange={(e) => {
+                const globalIndex = startIndex + index;
+                const updatedUsers = [...users];
+                updatedUsers[globalIndex].phone = e.target.value;
+                setUsers(updatedUsers);
+              }}
             />
             <Button onClick={() => handleSave(index, "phone")}>Save</Button>
           </>
@@ -169,7 +199,12 @@ function Tables() {
               type="text"
               defaultValue={user.role}
               style={{ padding: 5 }}
-              onChange={(e) => (user.role = e.target.value)} // Update role in real-time
+              onChange={(e) => {
+                const globalIndex = startIndex + index;
+                const updatedUsers = [...users];
+                updatedUsers[globalIndex].role = e.target.value;
+                setUsers(updatedUsers);
+              }}
             />
             <Button onClick={() => handleSave(index, "role")}>Save</Button>
           </>
@@ -188,11 +223,11 @@ function Tables() {
         <Button
           variant="contained"
           color="info"
-          href={user.report_url} // Replace with your actual file URL
+          href={user.report_url}
           download={`${user.name}.handwriting`}
           style={{ marginRight: "14px" }}
         >
-          <DownloadIcon style={{ marginRight: "4px" }} /> {/* Add the icon here */}
+          <DownloadIcon style={{ marginRight: "4px" }} />
           Handwriting
         </Button>
         <Button variant="contained" color="info" onClick={() => handleView(user.user_id)}>
@@ -224,17 +259,34 @@ function Tables() {
               coloredShadow="info"
             >
               <MDTypography variant="h6" color="white">
-                Profile Table
+                Profile Table ({users.length} total users)
               </MDTypography>
             </MDBox>
             <MDBox pt={3}>
-              <DataTable
-                table={{ columns, rows }}
-                isSorted={false}
-                entriesPerPage={false}
-                showTotalEntries={false}
-                noEndBorder
-              />
+              {loading ? (
+                <MDBox p={2} textAlign="center">
+                  Loading...
+                </MDBox>
+              ) : (
+                <DataTable
+                  table={{ columns, rows }}
+                  isSorted={false}
+                  entriesPerPage={{
+                    defaultValue: pageSize,
+                    entries: [5, 10, 15, 20, 25],
+                    canChange: true,
+                  }}
+                  showTotalEntries={true}
+                  pagination={{
+                    enabled: true,
+                    page: page + 1, // Convert 0-based to 1-based for display
+                    count: totalPages,
+                    onChange: handlePageChange,
+                    onEntriesPerPageChange: handleEntriesPerPageChange,
+                  }}
+                  noEndBorder
+                />
+              )}
             </MDBox>
           </Card>
         </Grid>
