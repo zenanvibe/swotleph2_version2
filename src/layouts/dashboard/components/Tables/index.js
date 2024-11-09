@@ -17,10 +17,16 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
 import API from "../../../../api/config"; // Import API base URL
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 function Tables() {
   const [users, setUsers] = useState([]); // State to hold users list
   const [open, setOpen] = useState(false); // Dialog open state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar open state
   const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar message
   const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Snackbar severity level (success, error, etc.)
@@ -39,33 +45,59 @@ function Tables() {
 
   // Columns configuration for the DataTable
   const columns = [
-    { Header: "Name", accessor: "name" },
-    { Header: "Role", accessor: "role" },
-    { Header: "Date of Submission", accessor: "dateOfSubmission" },
-    { Header: "Actions", accessor: "actions" },
+    { Header: "Name", accessor: "name", width: "25%" },
+    { Header: "Role", accessor: "role", width: "20%" },
+    { Header: "Date of Submission", accessor: "dateOfSubmission", width: "30%" },
+    { Header: "Actions", accessor: "actions", width: "25%" },
   ];
 
-  const rows = users.map((user) => ({
-    name: user.name,
-    role: user.role,
-    dateOfSubmission: new Date(user.dateofsubmission).toLocaleDateString("en-IN"), // Format date to IST
-    actions: (
-      <>
+  // Format date function
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "N/A";
+      return date.toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "N/A";
+    }
+  };
+
+  // Create rows data with proper formatting
+  const rows = (data) => {
+    if (!Array.isArray(data)) return [];
+
+    return data.map((user) => ({
+      name: <div>{user.name || "N/A"}</div>,
+      role: <div>{user.role || "N/A"}</div>,
+      dateOfSubmission: <div>{formatDate(user.created_at || user.dateofsubmission)}</div>,
+      actions: (
         <Button
           variant="contained"
-          style={{ color: "white", marginLeft: "8px", backgroundColor: "#E4003A" }}
-          onClick={() => navigate(`/userprofile/${user.user_id}`)} // Update to the correct path for user profile
+          size="medium"
+          style={{
+            backgroundColor: "#E4003A",
+            color: "white",
+            textTransform: "none",
+            minWidth: "80px",
+          }}
+          onClick={() => navigate(`/userprofile/${user.user_id}`)}
         >
           View
         </Button>
-      </>
-    ),
-  }));
+      ),
+    }));
+  };
 
   // Function to fetch user data
   const fetchUsers = async () => {
     const token = localStorage.getItem("token");
     const companyId = localStorage.getItem("company_id");
+    setLoading(true);
 
     try {
       const response = await fetch(`${API}company/staff/${companyId}`, {
@@ -80,17 +112,47 @@ function Tables() {
       }
 
       const data = await response.json();
-      setUsers(data); // Set the users list in state
+      console.log("Fetched data:", data); // Debug log
+
+      if (Array.isArray(data)) {
+        setUsers(data);
+        setTotalUsers(data.length);
+      } else if (data.users) {
+        setUsers(data.users);
+        setTotalUsers(data.total || data.users.length);
+      } else {
+        setUsers([]);
+        setTotalUsers(0);
+      }
     } catch (error) {
       console.error("Error fetching user data:", error);
+      setSnackbarMessage("Error fetching users. Please try again.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      setUsers([]);
+      setTotalUsers(0);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch user data when component mounts
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  // Calculate paginated data
+  const getPaginatedData = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return users.slice(startIndex, endIndex);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.max(1, Math.ceil(totalUsers / itemsPerPage));
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
   // Handle form submission to add a new user
   const handleSubmit = async () => {
     const formData = new FormData();
@@ -193,6 +255,7 @@ function Tables() {
             <MDBox
               mx={2}
               mt={-3}
+              mb={2}
               py={3}
               px={2}
               variant="gradient"
@@ -201,7 +264,7 @@ function Tables() {
               justifyContent="space-between"
               sx={{ backgroundColor: "#E4003A" }}
             >
-              <MDTypography variant="h6" color="white">
+              <MDTypography variant="h6" color="white" mt={1}>
                 Users Table
               </MDTypography>
 
@@ -210,14 +273,47 @@ function Tables() {
                 <AddIcon />
               </IconButton>
             </MDBox>
-            <MDBox pt={3}>
-              <DataTable
-                table={{ columns, rows }}
-                isSorted={false}
-                entriesPerPage={false}
-                showTotalEntries={false}
-                noEndBorder
-              />
+            <div style={{ height: "500px", overflow: "auto", marginLeft: "10px" }}>
+              {loading ? (
+                <MDBox display="flex" justifyContent="center" alignItems="center" height="400px">
+                  <MDTypography>Loading...</MDTypography>
+                </MDBox>
+              ) : (
+                <DataTable
+                  table={{ columns, rows: rows(getPaginatedData()) }}
+                  isSorted={false}
+                  entriesPerPage={false}
+                  showTotalEntries={false}
+                  noEndBorder
+                />
+              )}
+            </div>
+            <MDBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
+              <MDTypography variant="button" color="text">
+                Page {currentPage} of {totalPages}
+              </MDTypography>
+              <MDBox display="flex" gap={1}>
+                <Button
+                  variant="contained"
+                  color="info"
+                  size="small"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                  startIcon={<NavigateBeforeIcon />}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="contained"
+                  color="info"
+                  size="small"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                  endIcon={<NavigateNextIcon />}
+                >
+                  Next
+                </Button>
+              </MDBox>
             </MDBox>
           </Card>
         </Grid>
@@ -350,7 +446,7 @@ Tables.propTypes = {
       dateOfSubmission: PropTypes.string.isRequired,
       reportDownload: PropTypes.string,
     })
-  ).isRequired,
+  ),
 };
 
 export default Tables;

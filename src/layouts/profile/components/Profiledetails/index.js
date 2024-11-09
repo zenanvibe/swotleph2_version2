@@ -52,7 +52,7 @@ function UserProfile() {
           },
         });
         const userData = await response.json();
-        console.log(userData);
+        // console.log(userData);
         setUser(userData[0]); // Assuming the API returns an array
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -69,10 +69,20 @@ function UserProfile() {
             "Content-Type": "application/json",
           },
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const commentsData = await response.json();
-        setComments(commentsData);
+        if (commentsData.length === 0) {
+          console.log("No comments found for this user");
+        } else {
+          setComments(commentsData);
+        }
       } catch (error) {
         console.error("Error fetching comments:", error);
+        // Handle error state here
       }
     };
 

@@ -29,7 +29,7 @@ function Basic() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: email, // Use state values for email and password
+          email: email,
           password: password,
           roles: "admin",
         }),
@@ -41,10 +41,13 @@ function Basic() {
 
       const data = await response.json();
 
-      // Store the response in localStorage
+      // Store the response values in localStorage
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("token", data.token);
-      localStorage.setItem("roles", data.roles);
+      // Set the roles in localStorage to the admin's user id from the API response if role is admin
+      if (data.role === "admin") {
+        localStorage.setItem("roles", data.userId); // Set to the user's ID if role is 'admin'
+      }
       localStorage.setItem("company_id", data.company_id);
 
       // Navigate to the dashboard after successful sign-in
