@@ -39,6 +39,8 @@ function UserProfile() {
   const [openModal, setOpenModal] = useState(false); // State to manage modal visibility
   const [selectedFile, setSelectedFile] = useState(null); // State for selected file
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [editingComment, setEditingComment] = useState(null);
+  const [updatedComment, setUpdatedComment] = useState("");
 
   // Fetch user details on component mount
   useEffect(() => {
@@ -188,6 +190,40 @@ function UserProfile() {
     }
   };
 
+  const handleSave = async (commentId) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`${API}comments/edit/${commentId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: token ? `${token}` : "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ comment: updatedComment }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error updating comment");
+      }
+
+      const data = await response.json();
+
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.id === commentId
+            ? { ...comment, comment: updatedComment, updated_at: new Date() }
+            : comment
+        )
+      );
+
+      setEditingComment(null);
+      setUpdatedComment("");
+    } catch (error) {
+      console.error("Error updating comment:", error);
+    }
+  };
+
   const statusColor = (status) => {
     switch (status) {
       case "completed":
@@ -267,28 +303,50 @@ function UserProfile() {
                 <MDTypography variant="h6" color="primary" align="center">
                   Comment History
                 </MDTypography>
-                {comments.length > 0 ? (
-                  <Timeline>
-                    {comments.map((comment) => (
-                      <TimelineItem key={comment.id}>
-                        <TimelineSeparator>
-                          <TimelineDot />
-                          <TimelineConnector />
-                        </TimelineSeparator>
-                        <TimelineContent>
+                {comments.map((comment) => (
+                  <TimelineItem key={comment.id}>
+                    <TimelineSeparator>
+                      <TimelineDot />
+                      <TimelineConnector />
+                    </TimelineSeparator>
+                    <TimelineContent>
+                      {editingComment === comment.id ? (
+                        <>
+                          <TextField
+                            fullWidth
+                            multiline
+                            rows={2}
+                            value={updatedComment}
+                            onChange={(e) => setUpdatedComment(e.target.value)}
+                            variant="outlined"
+                          />
+                          <Button onClick={() => handleSave(comment.id)} sx={{ margin: "8px 0" }}>
+                            Save
+                          </Button>
+                          <Button onClick={() => setEditingComment(null)}>Cancel</Button>
+                        </>
+                      ) : (
+                        <>
                           <MDTypography variant="body2">
                             <strong>{comment.author_name}</strong>: {comment.comment} <br />
                             <small>{new Date(comment.created_at).toLocaleString()}</small>
                           </MDTypography>
-                        </TimelineContent>
-                      </TimelineItem>
-                    ))}
-                  </Timeline>
-                ) : (
-                  <MDTypography variant="body2" color="textSecondary" align="center">
-                    There are no comments yet, add your first comment.
-                  </MDTypography>
-                )}
+                          <Button
+                            variant="text"
+                            color="primary"
+                            onClick={() => {
+                              setEditingComment(comment.id);
+                              setUpdatedComment(comment.comment);
+                            }}
+                            sx={{ marginTop: "8px" }}
+                          >
+                            Edit
+                          </Button>
+                        </>
+                      )}
+                    </TimelineContent>
+                  </TimelineItem>
+                ))}
               </MDBox>
             </Card>
           </Grid>
