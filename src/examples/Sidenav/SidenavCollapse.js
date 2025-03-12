@@ -1,18 +1,3 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 // prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
 
@@ -41,41 +26,90 @@ function SidenavCollapse({ icon, name, active, ...rest }) {
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
 
   return (
-    <ListItem component="li">
+    <ListItem
+      component="li"
+      sx={{
+        position: "relative",
+        padding: 0,
+        marginBottom: "-8px",
+        marginTop: "42px",
+      }}
+    >
+      {/* Curved white background for active state */}
+      {active && (
+        <MDBox
+          sx={{
+            position: "absolute",
+            height: "170%",
+            top: "-10px",
+            width: "78%",
+            right: "0",
+            borderTopLeftRadius: "30px",
+            borderBottomLeftRadius: "30px",
+            backgroundColor: "#E0E0E0", // Light gray for active item
+            zIndex: 0,
+          }}
+        />
+      )}
+
+      {/* Icon box - positioned outside the active background curve */}
+      <ListItemIcon
+        sx={(theme) => ({
+          ...collapseIconBox(theme, { transparentSidenav, whiteSidenav, darkMode, active }),
+          minWidth: "42px",
+          position: "relative",
+          zIndex: 1,
+          marginLeft: "16px",
+          color: active ? "#FFFFFF" : "#FFFFFF",
+          // Red when active, white otherwise
+        })}
+      >
+        {typeof icon === "string" ? (
+          <Icon sx={{ color: active ? "#FFFFFF" : "#FFFFFF", position: "absolute", top: "23px" }}>
+            {icon}
+          </Icon>
+        ) : (
+          icon
+        )}
+      </ListItemIcon>
+
+      {/* Text content */}
       <MDBox
         {...rest}
-        sx={(theme) =>
-          collapseItem(theme, {
+        sx={(theme) => ({
+          ...collapseItem(theme, {
             active,
             transparentSidenav,
             whiteSidenav,
             darkMode,
             sidenavColor,
-          })
-        }
+          }),
+          position: "relative",
+          zIndex: 1,
+          background: "transparent",
+          boxShadow: "none",
+          width: "auto",
+          padding: 0,
+          margin: 0,
+        })}
       >
-        <ListItemIcon
-          sx={(theme) =>
-            collapseIconBox(theme, { transparentSidenav, whiteSidenav, darkMode, active })
-          }
-        >
-          {typeof icon === "string" ? (
-            <Icon sx={(theme) => collapseIcon(theme, { active })}>{icon}</Icon>
-          ) : (
-            icon
-          )}
-        </ListItemIcon>
-
         <ListItemText
           primary={name}
-          sx={(theme) =>
-            collapseText(theme, {
+          sx={(theme) => ({
+            ...collapseText(theme, {
               miniSidenav,
               transparentSidenav,
               whiteSidenav,
               active,
-            })
-          }
+            }),
+            marginLeft: "0",
+          })}
+          primaryTypographyProps={{
+            style: {
+              color: active ? "#ED3237" : "#FFFFFF", // Red text when active, white otherwise
+              fontWeight: active ? "500" : "400",
+            },
+          }}
         />
       </MDBox>
     </ListItem>

@@ -13,7 +13,7 @@ import API from "../../../../api/config";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Snackbar, Box, Divider } from "@mui/material";
 
 function Tables() {
   const navigate = useNavigate();
@@ -327,23 +327,39 @@ function Tables() {
       <Grid container spacing={6}>
         <Grid item xs={12}>
           <Card>
-            <MDBox
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mx={2}
-              mt={-3}
-              py={3}
-              px={2}
-              variant="gradient"
-              bgColor="info"
-              borderRadius="lg"
-              coloredShadow="info"
+            {/* Header that matches the image exactly */}
+            <Box
+              sx={{
+                width: "100%",
+                backgroundColor: "#fff",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                borderTopLeftRadius: "10px",
+                borderTopRightRadius: "10px",
+                overflow: "hidden",
+              }}
             >
-              <MDTypography variant="h6" color="white">
-                Profile Table ({users.length} total users)
-              </MDTypography>
-            </MDBox>
+              <Box
+                sx={{
+                  padding: "12px",
+                  textAlign: "center",
+                }}
+              >
+                <Box
+                  component="h2"
+                  sx={{
+                    fontFamily: '"Roboto", sans-serif',
+                    fontWeight: 700,
+                    fontSize: "18px",
+                    color: "#f44336",
+                    margin: 0,
+                  }}
+                >
+                  Profile Table
+                </Box>
+              </Box>
+              <Divider sx={{ width: "100%", margin: 0 }} />
+            </Box>
+
             <MDBox pt={3}>
               {loading ? (
                 <MDBox p={2} textAlign="center">

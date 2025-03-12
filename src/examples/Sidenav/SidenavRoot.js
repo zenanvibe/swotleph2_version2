@@ -1,18 +1,3 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 // @mui material components
 import Drawer from "@mui/material/Drawer";
 import { styled } from "@mui/material/styles";
@@ -22,13 +7,12 @@ export default styled(Drawer)(({ theme, ownerState }) => {
   const { transparentSidenav, whiteSidenav, miniSidenav, darkMode } = ownerState;
 
   const sidebarWidth = 250;
-  const { transparent, gradients, white, background } = palette;
+  const { transparent, white, background } = palette;
   const { xxl } = boxShadows;
-  const { pxToRem, linearGradient } = functions;
+  const { pxToRem } = functions;
 
-  let backgroundValue = darkMode
-    ? background.sidenav
-    : linearGradient(gradients.dark.main, gradients.dark.state);
+  // Use a solid red color instead of gradient
+  let backgroundValue = "#ED3237"; // Bright red color to match image
 
   if (transparentSidenav) {
     backgroundValue = transparent.main;
@@ -44,6 +28,10 @@ export default styled(Drawer)(({ theme, ownerState }) => {
       easing: transitions.easing.sharp,
       duration: transitions.duration.shorter,
     }),
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    justifyContent: "space-between",
 
     [breakpoints.up("xl")]: {
       boxShadow: transparentSidenav ? "none" : xxl,
@@ -55,6 +43,9 @@ export default styled(Drawer)(({ theme, ownerState }) => {
         easing: transitions.easing.sharp,
         duration: transitions.duration.enteringScreen,
       }),
+      // Add border radius to the right side
+      borderTopRightRadius: "30px",
+      borderBottomRightRadius: "30px",
     },
   });
 
@@ -66,6 +57,10 @@ export default styled(Drawer)(({ theme, ownerState }) => {
       easing: transitions.easing.sharp,
       duration: transitions.duration.shorter,
     }),
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    justifyContent: "space-between",
 
     [breakpoints.up("xl")]: {
       boxShadow: transparentSidenav ? "none" : xxl,
@@ -78,6 +73,9 @@ export default styled(Drawer)(({ theme, ownerState }) => {
         easing: transitions.easing.sharp,
         duration: transitions.duration.shorter,
       }),
+      // Add border radius to the right side even in mini mode
+      borderTopRightRadius: "30px",
+      borderBottomRightRadius: "30px",
     },
   });
 
@@ -85,7 +83,6 @@ export default styled(Drawer)(({ theme, ownerState }) => {
     "& .MuiDrawer-paper": {
       boxShadow: xxl,
       border: "none",
-
       ...(miniSidenav ? drawerCloseStyles() : drawerOpenStyles()),
     },
   };

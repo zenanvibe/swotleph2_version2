@@ -1,137 +1,297 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Card from "@mui/material/Card";
-import Switch from "@mui/material/Switch";
-import Grid from "@mui/material/Grid";
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-import MDInput from "components/MDInput";
-import MDButton from "components/MDButton";
-import BasicLayout from "layouts/authentication/components/BasicLayout";
-import bgImage from "assets/images/bg-sign-in-basic.jpeg";
-import API from "../../../api/config"; // Import API base URL
+import {
+  Checkbox,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  InputAdornment,
+  Alert,
+  Snackbar,
+  IconButton,
+} from "@mui/material";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import backgroundImage from "assets/images/login.jpg";
+import leftImage from "assets/images/loginbg.jpg";
+import API from "../../../api/config";
 
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
-  const [email, setEmail] = useState(""); // State for email
-  const [password, setPassword] = useState(""); // State for password
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [openAlert, setOpenAlert] = useState(false);
   const navigate = useNavigate();
 
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
+  useEffect(() => {
+    const sidebarElement = document.querySelector(".sidebar-container");
+    if (sidebarElement) {
+      sidebarElement.style.display = "none";
+    }
 
-  // Sign-in handler
-  const handleSignIn = async (e) => {
-    e.preventDefault(); // Prevent page reload on form submit
-
-    const payload = {
-      email,
-      password,
-      roles: "company",
+    return () => {
+      if (sidebarElement) {
+        sidebarElement.style.display = "block";
+      }
     };
+  }, []);
+
+  const handleSetRememberMe = () => setRememberMe(!rememberMe);
+  const handleCloseAlert = () => setOpenAlert(false);
+  const handleTogglePassword = () => setShowPassword(!showPassword);
+
+  const validateInputs = () => {
+    if (!email.trim()) {
+      setError("Email is required");
+      setOpenAlert(true);
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      setOpenAlert(true);
+      return false;
+    }
+
+    if (!password) {
+      setError("Password is required");
+      setOpenAlert(true);
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+
+    if (!validateInputs()) {
+      return;
+    }
+
+    const payload = { email, password, roles: "company" };
 
     try {
       const response = await fetch(`${API}auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Store user data in localStorage
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.userId);
         localStorage.setItem("roles", data.roles);
         localStorage.setItem("company_id", data.company_id);
-
-        // Navigate to the dashboard after successful sign-in
         navigate("/dashboard");
       } else {
-        console.error(data.message || "Login failed");
+        setError("Login failed. Please check your credentials.");
+        setOpenAlert(true);
       }
     } catch (error) {
       console.error("Error:", error);
+      setError("Network error. Please try again later.");
+      setOpenAlert(true);
     }
   };
 
   return (
-    <BasicLayout image={bgImage}>
-      <Card>
-        <MDBox
-          variant="gradient"
-          bgColor="info"
-          borderRadius="lg"
-          coloredShadow="info"
-          mx={2}
-          mt={-3}
-          p={2}
-          mb={1}
-          textAlign="center"
+    <Box
+      sx={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 1200,
+        flexDirection: { xs: "column", md: "row" },
+      }}
+    >
+      <Snackbar
+        open={openAlert}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseAlert}
+          severity="error"
+          sx={{ width: "100%", fontFamily: "Kamerion, sans-serif" }}
         >
-          <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Sign in
-          </MDTypography>
-          <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }} />
-        </MDBox>
-        <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form" onSubmit={handleSignIn}>
-            <MDBox mb={2}>
-              <MDInput
-                type="email"
-                label="Email"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)} // Update email state
-              />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput
-                type="password"
-                label="Password"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)} // Update password state
-              />
-            </MDBox>
-            <MDBox display="flex" alignItems="center" ml={-1}>
-              <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-              <MDTypography
-                variant="button"
-                fontWeight="regular"
-                color="text"
-                onClick={handleSetRememberMe}
-                sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-              >
-                &nbsp;&nbsp;Remember me
-              </MDTypography>
-            </MDBox>
-            <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth type="submit">
-                Sign in
-              </MDButton>
-            </MDBox>
-            <MDBox mt={3} mb={1} textAlign="center">
-              <MDTypography variant="button" color="text">
-                Don&apos;t have an account?{" "}
-                <MDTypography
-                  component={Link}
-                  to="/sign-up"
-                  variant="button"
-                  color="info"
-                  fontWeight="medium"
-                  textGradient
-                >
-                  Sign up
-                </MDTypography>
-              </MDTypography>
-            </MDBox>
-          </MDBox>
-        </MDBox>
-      </Card>
-    </BasicLayout>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      {/* Left Image Section - Hidden on Mobile */}
+      <Box
+        sx={{
+          flex: 1,
+          display: { xs: "none", md: "block" },
+          backgroundImage: `url(${leftImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+
+      {/* Login Section */}
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          minHeight: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          px: { xs: 4, md: 0 },
+        }}
+      >
+        {/* Title */}
+        <Typography
+          sx={{
+            fontFamily: "Playfair Display, serif",
+            fontSize: { xs: "28px", md: "46px" },
+            fontWeight: "bold",
+            color: "#D32F2F",
+            textAlign: "center",
+            mb: 0,
+          }}
+        >
+          Welcome
+        </Typography>
+
+        <Typography
+          variant="body2"
+          color="textSecondary"
+          sx={{
+            fontFamily: "Kamerion, sans-serif",
+            textAlign: "center",
+            fontSize: { xs: "12px", md: "14px" },
+            mb: 2,
+          }}
+        >
+          Login via Email
+        </Typography>
+
+        {/* Login Form */}
+        <Box
+          component="form"
+          onSubmit={handleSignIn}
+          sx={{ width: "100%", maxWidth: "350px", textAlign: "center" }}
+        >
+          {/* Email Field */}
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailIcon sx={{ color: "red" }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          {/* Password Field with Toggle Icon */}
+          <TextField
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            fullWidth
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockIcon sx={{ color: "red" }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleTogglePassword} edge="end" sx={{ p: 0.5 }}>
+                    {showPassword ? (
+                      <Visibility sx={{ fontSize: 18 }} />
+                    ) : (
+                      <VisibilityOff sx={{ fontSize: 18 }} />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          {/* Remember Me */}
+          <Box display="flex" alignItems="center" justifyContent="start" my={1}>
+            <Checkbox
+              sx={{ color: "black", "&.Mui-checked": { color: "black" } }}
+              checked={rememberMe}
+              onChange={handleSetRememberMe}
+            />
+            <Typography
+              variant="body2"
+              onClick={handleSetRememberMe}
+              sx={{
+                cursor: "pointer",
+                fontFamily: "Kamerion, sans-serif",
+                color: "black",
+                fontSize: "12px",
+              }}
+            >
+              Remember me
+            </Typography>
+          </Box>
+
+          {/* Login Button */}
+          <Button
+            variant="contained"
+            fullWidth
+            type="submit"
+            sx={{
+              width: "50%",
+              mt: 2,
+              bgcolor: "crimson",
+              color: "white !important",
+              fontWeight: "600",
+              "&:hover": { bgcolor: "#B71C1C" },
+              py: { xs: 1.2, md: 1.5 },
+            }}
+          >
+            LOGIN
+          </Button>
+        </Box>
+
+        {/* Sign Up Link */}
+        <Typography
+          variant="body2"
+          mt={3}
+          sx={{
+            fontFamily: "Kamerion, sans-serif",
+            textAlign: "center",
+            fontSize: { xs: "12px", md: "14px" },
+          }}
+        >
+          Don&apos;t have an account?{" "}
+          <Link to="/sign-up" style={{ color: "red", textDecoration: "none" }}>
+            Sign Up
+          </Link>
+        </Typography>
+      </Box>
+    </Box>
   );
 }
 

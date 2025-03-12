@@ -1,44 +1,61 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
+import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import IconButton from "@mui/material/IconButton";
 import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import MDBox from "components/MDBox";
-import { Grid } from "@mui/material";
+import {
+  Grid,
+  Box,
+  Typography,
+  InputLabel,
+  FormControl,
+  MenuItem,
+  Select,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Tables from "./components/Tables";
-import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
+import featherImage from "assets/images/feather.png";
 import MDTypography from "components/MDTypography";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BusinessIcon from "@mui/icons-material/Business";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import GroupIcon from "@mui/icons-material/Group";
-import API from "../../api/config"; // Import API base URL
+import CloseIcon from "@mui/icons-material/Close";
+import API from "../../api/config";
+import PersonIcon from "@mui/icons-material/Person";
 
 function Dashboard() {
-  const navigate = useNavigate(); // Initialize useNavigate for redirection
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    userName: "",
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    role: "",
+    gender: "",
     handwriting: null,
-    dateOfSubmission: "",
   });
-  const [users, setUsers] = useState([]); // Store the submitted users
+  const [users, setUsers] = useState([]);
   const [userInfo, setUserInfo] = useState({
     userName: "",
     companyName: "",
     numberOfEmployees: 0,
     numberOfCandidates: 0,
-  }); // Store fetched user info
+  });
 
-  // Functions to open and close modal
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  // Handle input changes for form fields
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -47,7 +64,6 @@ function Dashboard() {
     });
   };
 
-  // Handle file input changes
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
@@ -55,35 +71,22 @@ function Dashboard() {
     });
   };
 
-  // Handle form submission
   const handleSubmit = () => {
-    // Add the form data to the users array
     setUsers([...users, formData]);
-
-    // Reset form data for next user
     setFormData({
-      userName: "",
+      fullName: "",
+      email: "",
+      phoneNumber: "",
+      role: "",
+      gender: "",
       handwriting: null,
-      dateOfSubmission: "",
     });
-
-    // Close the modal after submission
     handleClose();
   };
 
-  const getCurrentDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed
-    const day = String(today.getDate()).padStart(2, "0");
-
-    return `${day}-${month}-${year}`; // Format as DD-MM-YYYY
-  };
-
-  // Fetch user data from API
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId"); // Get userId from local storage
+    const userId = localStorage.getItem("userId");
 
     if (!token || !userId) {
       navigate("/sign-in");
@@ -121,47 +124,110 @@ function Dashboard() {
   return (
     <DashboardLayout>
       <DashboardNavbar role="user" />
-      <MDBox py={3}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="primary"
-                icon={<AccountCircleIcon />} // Icon for Username
-                title="Name"
-                value={userInfo.userName || "N/A"}
+      <MDBox py={3} px={isMobile ? 2 : 3}>
+        {/* Top Section Layout - Using Grid for responsiveness */}
+        <Grid container spacing={isMobile ? 2 : 3} sx={{ mb: 3 }}>
+          {/* Welcome Card */}
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                backgroundColor: "white",
+                borderRadius: "16px",
+                padding: isMobile ? "16px" : "24px",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.05)",
+                backgroundColor: "#FFFFFF",
+              }}
+            >
+              <Box>
+                <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: "bold", mb: 1 }}>
+                  Hello {userInfo.userName || "User"} !
+                </Typography>
+                <Typography variant={isMobile ? "body2" : "body1"} sx={{ color: "#666", mb: 0.5 }}>
+                  It&apos;s good to see you again here 👋
+                </Typography>
+                <Typography
+                  variant={isMobile ? "body2" : "body1"}
+                  sx={{ color: "#f44336", fontWeight: "medium" }}
+                >
+                  {userInfo.companyName || "Brand Mindz Global Technology Pvt Ltd"}
+                </Typography>
+              </Box>
+              <Box
+                component="img"
+                src={featherImage}
+                alt="Feather"
+                sx={{
+                  height: isMobile ? "60px" : "80px",
+                  display: { xs: "none", sm: "block" },
+                }}
               />
-            </MDBox>
+            </Box>
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="primary"
-                icon={<BusinessIcon />} // Icon for Organization Name
-                title="Organization"
-                value={userInfo.companyName || "N/A"}
-              />
-            </MDBox>
+
+          {/* Candidates Card */}
+          <Grid item xs={6} md={3}>
+            <Box
+              sx={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: "16px",
+                padding: isMobile ? "16px" : "24px",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              <PersonIcon sx={{ fontSize: isMobile ? 24 : 32, color: "#000", mb: 1 }} />
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                sx={{ fontWeight: "medium", color: "#f44336", mb: 1 }}
+              >
+                Candidates
+              </Typography>
+              <Typography
+                variant={isMobile ? "h4" : "h2"}
+                sx={{ fontWeight: "bold", color: "#444" }}
+              >
+                {userInfo.numberOfCandidates || "00"}
+              </Typography>
+            </Box>
           </Grid>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="primary"
-                icon={<GroupIcon />} // Icon for Number of Profiles Added
-                title="Candidates"
-                value={userInfo.numberOfCandidates || 0}
-              />
-            </MDBox>
-          </Grid>
-          <Grid item xs={12} md={6} lg={3}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color="primary"
-                icon={<GroupIcon />} // Icon for Number of Profiles Added
-                title="Employees"
-                value={userInfo.numberOfEmployees || 0}
-              />
-            </MDBox>
+
+          {/* Employees Card */}
+          <Grid item xs={6} md={3}>
+            <Box
+              sx={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: "16px",
+                padding: isMobile ? "16px" : "24px",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              <GroupIcon sx={{ fontSize: isMobile ? 24 : 32, color: "#000", mb: 1 }} />
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                sx={{ fontWeight: "medium", color: "#f44336", mb: 1 }}
+              >
+                Employees
+              </Typography>
+              <Typography
+                variant={isMobile ? "h4" : "h2"}
+                sx={{ fontWeight: "bold", color: "#444" }}
+              >
+                {userInfo.numberOfEmployees || "0"}
+              </Typography>
+            </Box>
           </Grid>
         </Grid>
 
@@ -219,8 +285,9 @@ function Dashboard() {
       </MDBox>
 
       {/* Pass the user data to the Tables component */}
-      <Tables initialUsers={users} />
-      {/* <Footer /> */}
+      <Box sx={{ px: isMobile ? 2 : 3 }}>
+        <Tables initialUsers={users} />
+      </Box>
     </DashboardLayout>
   );
 }

@@ -1,106 +1,157 @@
-// react-router-dom components
 import { Link } from "react-router-dom";
-
-// @mui material components
-import Card from "@mui/material/Card";
-import Checkbox from "@mui/material/Checkbox";
-
-// Material Dashboard 2 React components
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-import MDInput from "components/MDInput";
-import MDButton from "components/MDButton";
-
-// Authentication layout components
-import CoverLayout from "layouts/authentication/components/CoverLayout";
-
-// Images
-import bgImage from "assets/images/bg-sign-up-cover.jpeg";
+import { useState, useEffect } from "react";
+import { Box, Typography, TextField, Button, InputAdornment } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
+import bgImage from "assets/images/login.jpg";
+import leftImage from "assets/images/signupbg.png";
 
 function Cover() {
+  // Hide navbar when component mounts
+  useEffect(() => {
+    // This targets the navbar element - adjust the selector as needed for your app
+    const navbarElement = document.querySelector(".navbar-container"); // Adjust selector as needed
+    if (navbarElement) {
+      navbarElement.style.display = "none";
+    }
+
+    // Show navbar again when navigating away
+    return () => {
+      if (navbarElement) {
+        navbarElement.style.display = "block";
+      }
+    };
+  }, []);
+
   return (
-    <CoverLayout image={bgImage}>
-      <Card>
-        <MDBox
-          variant="gradient"
-          bgColor="info"
-          borderRadius="lg"
-          coloredShadow="success"
-          mx={2}
-          mt={-3}
-          p={3}
-          mb={1}
-          textAlign="center"
-        >
-          <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Join us today
-          </MDTypography>
-          <MDTypography display="block" variant="button" color="white" my={1}>
-            Enter your email and password to register
-          </MDTypography>
-        </MDBox>
-        <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
-            <MDBox mb={2}>
-              <MDInput type="text" label="Name" variant="standard" fullWidth />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput type="email" label="Email" variant="standard" fullWidth />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput type="password" label="Password" variant="standard" fullWidth />
-            </MDBox>
-            {/* <MDBox display="flex" alignItems="center" ml={-1}>
-              <Checkbox />
-              <MDTypography
-                variant="button"
-                fontWeight="regular"
-                color="text"
-                sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
+    <Box
+      sx={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw", // Take full width
+        position: "fixed", // Position fixed to overlay the entire viewport
+        top: 0,
+        left: 0,
+        zIndex: 1200, // Higher z-index to appear above sidebar
+        flexDirection: { xs: "column", md: "row" },
+      }}
+    >
+      {/* Left Side Background Image */}
+      <Box
+        sx={{
+          flex: 1,
+          backgroundImage: `url(${leftImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          display: { xs: "none", md: "block" },
+        }}
+      />
+
+      {/* Signup Form Section */}
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          backgroundImage: { xs: "none", md: `url(${bgImage})` },
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          p: { xs: 2, md: 3 },
+        }}
+      >
+        <Box sx={{ width: "90%", maxWidth: 400, p: { xs: 3, md: 4 } }}>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            color="crimson"
+            textAlign="center"
+            gutterBottom
+          >
+            Create an Account to Get Started
+          </Typography>
+
+          <Typography variant="body2" textAlign="center" color="textSecondary" mb={3}>
+            Just Enter Email and Password
+          </Typography>
+
+          <Box component="form">
+            <TextField
+              label="Name"
+              fullWidth
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon sx={{ color: "red" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              label="Email"
+              fullWidth
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon sx={{ color: "red" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              label="Password"
+              type="password"
+              fullWidth
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon sx={{ color: "red" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {/* Centered Sign-Up Button */}
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+              <Button
+                variant="contained"
+                type="submit"
+                sx={{
+                  bgcolor: "crimson",
+                  color: "white !important",
+                  "&:hover": { bgcolor: "darkred" },
+                  px: 4,
+                }}
               >
-                &nbsp;&nbsp;I agree the&nbsp;
-              </MDTypography>
-              <MDTypography
-                component="a"
-                href="#"
-                variant="button"
-                fontWeight="bold"
-                color="info"
-                textGradient
-              >
-                Terms and Conditions
-              </MDTypography>
-            </MDBox> */}
-            <MDBox mt={4} mb={1}>
-              <MDButton
-                variant="gradient"
-                component={Link}
-                to="/admin/dashboard"
-                color="info"
-                fullWidth
-              >
-                sign in
-              </MDButton>
-            </MDBox>
-            <MDBox mt={3} mb={1} textAlign="center">
-              <MDTypography variant="button" color="text">
-                Already have an account?{" "}
-                <MDTypography
-                  component={Link}
-                  to="/admin/sign-in"
-                  variant="button"
-                  color="info"
-                  fontWeight="medium"
-                  textGradient
-                >
-                  Sign In
-                </MDTypography>
-              </MDTypography>
-            </MDBox>
-          </MDBox>
-        </MDBox>
-      </Card>
-    </CoverLayout>
+                SIGN UP
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Bold Red Sign-In Text */}
+          <Typography variant="body2" textAlign="center" mt={3}>
+            Already have an account?{" "}
+            <Link
+              to="/admin/sign-in"
+              style={{
+                color: "red",
+                textDecoration: "none",
+                fontWeight: "bold",
+              }}
+            >
+              Sign In
+            </Link>
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 

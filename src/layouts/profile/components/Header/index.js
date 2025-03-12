@@ -70,28 +70,16 @@ function Header({ children }) {
         display="flex"
         alignItems="center"
         position="relative"
-        minHeight="18.75rem"
+        height="10.75rem"
         borderRadius="xl"
         sx={{
-          backgroundImage: ({ functions: { rgba, linearGradient }, palette: { gradients } }) =>
-            `${linearGradient(
-              rgba(gradients.info.main, 0.6),
-              rgba(gradients.info.state, 0.6)
-            )}, url(${backgroundImage})`,
+          backgroundImage: `url(${backgroundImage})`,
           backgroundSize: "cover",
           backgroundPosition: "50%",
           overflow: "hidden",
         }}
       />
-      <Card
-        sx={{
-          position: "relative",
-          mt: -16,
-          mx: 3,
-          py: 2,
-          px: 2,
-        }}
-      >
+      <Card sx={{}}>
         {/* <Grid container spacing={3} alignItems="center">
           <Grid item>
             <MDAvatar src={burceMars} alt="profile-image" size="xl" shadow="sm" />

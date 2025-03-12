@@ -1,155 +1,265 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Card from "@mui/material/Card";
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-import MDInput from "components/MDInput";
-import MDButton from "components/MDButton";
-import CoverLayout from "layouts/authentication/components/CoverLayout";
-import bgImage from "assets/images/bg-sign-up-cover.jpeg";
-import API from "../../../api/config"; // Import the API base URL
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  InputAdornment,
+  IconButton,
+  Snackbar,
+  Alert,
+} from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
+import PhoneIcon from "@mui/icons-material/Phone";
+import BusinessIcon from "@mui/icons-material/Business";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import bgImage from "assets/images/login.jpg";
+import leftImage from "assets/images/signupbg.png";
+import API from "../../../api/config";
 
 function Cover() {
   const navigate = useNavigate();
-
-  // States for form inputs
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState(""); // Added phone number state
+  const [showPassword, setShowPassword] = useState(false);
+  const [phone, setPhone] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [error, setError] = useState("");
+  const [openAlert, setOpenAlert] = useState(false);
 
-  // Handle form submission
+  useEffect(() => {
+    const sidebarElement = document.querySelector(".sidebar-container");
+    if (sidebarElement) sidebarElement.style.display = "none";
+    return () => {
+      if (sidebarElement) sidebarElement.style.display = "block";
+    };
+  }, []);
+
+  const handleTogglePassword = () => setShowPassword(!showPassword);
+  const handleCloseAlert = () => setOpenAlert(false);
+
+  const validateForm = () => {
+    if (!name || !email || !password || !phone || !companyName) {
+      setError("All fields are required");
+      setOpenAlert(true);
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      setOpenAlert(true);
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const payload = {
-      name,
-      email,
-      phone, // Added phone to the payload
-      password,
-      company_name: companyName,
-    };
+    if (!validateForm()) return;
+
+    const payload = { name, email, phone, password, company_name: companyName };
 
     try {
       const response = await fetch(`${API}auth/signup`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const data = await response.json();
-
-      if (response.ok) {
-        // Redirect to dashboard or another page
-        navigate("/dashboard");
-      } else {
-        console.error(data.message || "Something went wrong");
+      if (response.ok) navigate("/sign-in");
+      else {
+        setError(data.message || "Registration failed. Please try again.");
+        setOpenAlert(true);
       }
     } catch (error) {
-      console.error("Error:", error);
+      setError("Connection error. Please check your internet connection.");
+      setOpenAlert(true);
     }
   };
 
   return (
-    <CoverLayout image={bgImage}>
-      <Card>
-        <MDBox
-          variant="gradient"
-          bgColor="info"
-          borderRadius="lg"
-          coloredShadow="success"
-          mx={2}
-          mt={-3}
-          p={3}
-          mb={1}
-          textAlign="center"
-        >
-          <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Join us today
-          </MDTypography>
-          <MDTypography display="block" variant="button" color="white" my={1}>
-            Enter your email and password to register
-          </MDTypography>
-        </MDBox>
-        <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form" onSubmit={handleSubmit}>
-            <MDBox mb={2}>
-              <MDInput
-                type="text"
-                label="Name"
-                variant="standard"
-                fullWidth
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput
-                type="email"
-                label="Email"
-                variant="standard"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput
-                type="password"
-                label="Password"
-                variant="standard"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput
-                type="tel"
-                label="Phone Number" // Added phone number input field
-                variant="standard"
-                fullWidth
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput
-                type="text"
-                label="Organization Name"
-                variant="standard"
-                fullWidth
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
-            </MDBox>
-            <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" type="submit" color="info" fullWidth>
-                Sign Up
-              </MDButton>
-            </MDBox>
-            <MDBox mt={3} mb={1} textAlign="center">
-              <MDTypography variant="button" color="text">
-                Already have an account?{" "}
-                <MDTypography
-                  component={Link}
-                  to="/sign-in"
-                  variant="button"
-                  color="info"
-                  fontWeight="medium"
-                  textGradient
-                >
-                  Sign In
-                </MDTypography>
-              </MDTypography>
-            </MDBox>
-          </MDBox>
-        </MDBox>
-      </Card>
-    </CoverLayout>
+    <Box
+      sx={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 1200,
+        flexDirection: { xs: "column", md: "row" },
+      }}
+    >
+      <Snackbar
+        open={openAlert}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseAlert} severity="error">
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Box
+        sx={{
+          flex: 1,
+          backgroundImage: `url(${leftImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          display: { xs: "none", md: "block" },
+        }}
+      />
+
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+          backgroundImage: { xs: "none", md: `url(${bgImage})` },
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          p: { xs: 2, md: 3 },
+        }}
+      >
+        <Box sx={{ width: "90%", maxWidth: 400, p: { xs: 3, md: 4 } }}>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            color="crimson"
+            textAlign="center"
+            gutterBottom
+          >
+            Create an Account to Get Started
+          </Typography>
+          <Typography variant="body2" textAlign="center" color="textSecondary" mb={3}>
+            Just Enter Email and Password
+          </Typography>
+
+          <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+              label="Name"
+              fullWidth
+              margin="normal"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon sx={{ color: "red" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon sx={{ color: "red" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              fullWidth
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon sx={{ color: "red" }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleTogglePassword} edge="end">
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Phone Number"
+              fullWidth
+              margin="normal"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PhoneIcon sx={{ color: "red" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Organization Name"
+              fullWidth
+              margin="normal"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              required
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <BusinessIcon sx={{ color: "red" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+              <Button
+                variant="contained"
+                type="submit"
+                sx={{
+                  bgcolor: "crimson",
+                  color: "white !important",
+                  "&:hover": { bgcolor: "darkred" },
+                  px: 4,
+                }}
+              >
+                SIGN UP
+              </Button>
+            </Box>
+          </Box>
+
+          <Typography variant="body2" textAlign="center" mt={3}>
+            Already have an account?{" "}
+            <Link
+              to="/sign-in"
+              style={{ color: "red", textDecoration: "none", fontWeight: "bold" }}
+            >
+              Sign In
+            </Link>
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 

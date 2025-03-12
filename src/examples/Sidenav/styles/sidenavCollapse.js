@@ -14,31 +14,29 @@ Coded by www.creative-tim.com
 */
 function collapseItem(theme, ownerState) {
   const { palette, transitions, breakpoints, boxShadows, borders, functions } = theme;
-  const { active, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = ownerState;
+  const { active, transparentSidenav, whiteSidenav, darkMode } = ownerState;
 
-  const { white, transparent, dark, grey, gradients } = palette;
+  const { white, transparent, grey } = palette;
   const { md } = boxShadows;
   const { borderRadius } = borders;
-  const { pxToRem, rgba, linearGradient } = functions;
+  const { pxToRem, rgba } = functions;
 
   return {
     background: active
-      ? linearGradient(gradients[sidenavColor].main, gradients[sidenavColor].state)
+      ? "rgba(255, 255, 255, 0.2)" // Semi-transparent white for active items
       : transparent.main,
-    color:
-      (transparentSidenav && !darkMode && !active) || (whiteSidenav && !active)
-        ? dark.main
-        : white.main,
+    color: white.main, // Always white text for better visibility on red background
     display: "flex",
     alignItems: "center",
-    width: "100%",
+    width: "87%", // Slightly narrower than 100% to allow space for the curve
     padding: `${pxToRem(8)} ${pxToRem(10)}`,
     margin: `${pxToRem(1.5)} ${pxToRem(16)}`,
-    borderRadius: borderRadius.md,
+    borderRadius: "30px", // Increased border radius for more pronounced curve
     cursor: "pointer",
     userSelect: "none",
     whiteSpace: "nowrap",
-    boxShadow: active && !whiteSidenav && !darkMode && !transparentSidenav ? md : "none",
+    boxShadow: active ? md : "none",
+    backgroundColor: active ? "#E0E0E0" : "transparent", // Light gray background for active items
     [breakpoints.up("xl")]: {
       transition: transitions.create(["box-shadow", "background-color"], {
         easing: transitions.easing.easeInOut,
@@ -47,25 +45,14 @@ function collapseItem(theme, ownerState) {
     },
 
     "&:hover, &:focus": {
-      backgroundColor: () => {
-        let backgroundValue;
-
-        if (!active) {
-          backgroundValue =
-            transparentSidenav && !darkMode
-              ? grey[300]
-              : rgba(whiteSidenav ? grey[400] : white.main, 0.2);
-        }
-
-        return backgroundValue;
-      },
+      backgroundColor: active ? "#E0E0E0" : "rgba(255, 255, 255, 0.1)", // Keep active color or add hover effect
     },
   };
 }
 
 function collapseIconBox(theme, ownerState) {
   const { palette, transitions, borders, functions } = theme;
-  const { transparentSidenav, whiteSidenav, darkMode, active } = ownerState;
+  const { active } = ownerState;
 
   const { white, dark } = palette;
   const { borderRadius } = borders;
@@ -74,10 +61,7 @@ function collapseIconBox(theme, ownerState) {
   return {
     minWidth: pxToRem(32),
     minHeight: pxToRem(32),
-    color:
-      (transparentSidenav && !darkMode && !active) || (whiteSidenav && !active)
-        ? dark.main
-        : white.main,
+    color: active ? dark.main : white.main, // Dark color for active state, white otherwise
     borderRadius: borderRadius.md,
     display: "grid",
     placeItems: "center",
@@ -87,21 +71,22 @@ function collapseIconBox(theme, ownerState) {
     }),
 
     "& svg, svg g": {
-      color: transparentSidenav || whiteSidenav ? dark.main : white.main,
+      color: active ? dark.main : white.main, // Dark icon for active state, white otherwise
     },
   };
 }
 
-const collapseIcon = ({ palette: { white, gradients } }, { active }) => ({
-  color: active ? white.main : gradients.dark.state,
+const collapseIcon = ({ palette: { white, dark } }, { active }) => ({
+  color: active ? dark.main : white.main, // Dark icon for active state, white otherwise
 });
 
 function collapseText(theme, ownerState) {
-  const { typography, transitions, breakpoints, functions } = theme;
+  const { typography, transitions, breakpoints, functions, palette } = theme;
   const { miniSidenav, transparentSidenav, active } = ownerState;
 
-  const { size, fontWeightRegular, fontWeightLight } = typography;
+  const { size, fontWeightRegular, fontWeightMedium } = typography;
   const { pxToRem } = functions;
+  const { dark } = palette;
 
   return {
     marginLeft: pxToRem(10),
@@ -117,9 +102,10 @@ function collapseText(theme, ownerState) {
     },
 
     "& span": {
-      fontWeight: active ? fontWeightRegular : fontWeightLight,
+      fontWeight: active ? fontWeightMedium : fontWeightRegular,
       fontSize: size.sm,
       lineHeight: 0,
+      color: active ? dark.main : "#FFFFFF", // Dark text for active state, white otherwise
     },
   };
 }
