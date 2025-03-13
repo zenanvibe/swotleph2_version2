@@ -9,25 +9,29 @@ import {
   InputAdornment,
   Alert,
   Snackbar,
+  IconButton,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import backgroundImage from "assets/images/login.jpg";
 import leftImage from "assets/images/loginbg.jpg";
 import API from "../../../../api/config";
 
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
-  const [email, setEmail] = useState(""); // Store email input
-  const [password, setPassword] = useState(""); // Store password input
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   // Hide navbar when component mounts
   useEffect(() => {
     // This targets the navbar element - adjust the selector as needed for your app
-    const navbarElement = document.querySelector(".navbar-container"); // Adjust selector as needed
+    const navbarElement = document.querySelector(".navbar-container");
     if (navbarElement) {
       navbarElement.style.display = "none";
     }
@@ -41,10 +45,8 @@ function Basic() {
   }, []);
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
-
-  const handleCloseAlert = () => {
-    setOpenAlert(false);
-  };
+  const handleCloseAlert = () => setOpenAlert(false);
+  const handleTogglePassword = () => setShowPassword(!showPassword);
 
   const validateInputs = () => {
     if (!email.trim()) {
@@ -163,20 +165,20 @@ function Basic() {
         sx={{
           flex: 1,
           display: "flex",
-          height: "100vh",
+          minHeight: "100vh",
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "column",
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          px: { xs: 3, md: 0 },
+          px: { xs: 4, md: 0 },
         }}
       >
         <Typography
           sx={{
             fontFamily: "Playfair Display, serif",
-            fontSize: { xs: "32px", md: "46px" },
+            fontSize: { xs: "28px", md: "46px" },
             fontWeight: "bold",
             color: "#D32F2F",
             textAlign: "center",
@@ -188,7 +190,12 @@ function Basic() {
         <Typography
           variant="body2"
           color="textSecondary"
-          sx={{ fontFamily: "Kamerion, sans-serif", textAlign: "center", fontSize: "14px", mb: 2 }} // Reduced font size
+          sx={{
+            fontFamily: "Kamerion, sans-serif",
+            textAlign: "center",
+            fontSize: { xs: "12px", md: "14px" },
+            mb: 2,
+          }}
         >
           Login via Email
         </Typography>
@@ -196,7 +203,7 @@ function Basic() {
         <Box
           component="form"
           onSubmit={handleSignIn}
-          sx={{ width: "90%", maxWidth: "350px", textAlign: "center" }}
+          sx={{ width: "100%", maxWidth: "350px", textAlign: "center" }}
         >
           <TextField
             label="Email"
@@ -216,7 +223,7 @@ function Basic() {
 
           <TextField
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             fullWidth
             margin="normal"
             value={password}
@@ -225,6 +232,17 @@ function Basic() {
               startAdornment: (
                 <InputAdornment position="start">
                   <LockIcon sx={{ color: "red" }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleTogglePassword} edge="end" sx={{ p: 0.5 }}>
+                    {showPassword ? (
+                      <Visibility sx={{ fontSize: 18 }} />
+                    ) : (
+                      <VisibilityOff sx={{ fontSize: 18 }} />
+                    )}
+                  </IconButton>
                 </InputAdornment>
               ),
             }}
@@ -244,7 +262,7 @@ function Basic() {
                 fontFamily: "Kamerion, sans-serif",
                 color: "black",
                 fontSize: "12px",
-              }} // Decreased font size
+              }}
             >
               Remember me
             </Typography>
@@ -263,6 +281,7 @@ function Basic() {
               "&:hover": { bgcolor: "#B71C1C" },
               alignItems: "center",
               justifyContent: "center",
+              py: { xs: 1.2, md: 1.5 },
             }}
           >
             LOGIN
@@ -272,7 +291,11 @@ function Basic() {
         <Typography
           variant="body2"
           mt={3}
-          sx={{ fontFamily: "Kamerion, sans-serif", textAlign: "center" }}
+          sx={{
+            fontFamily: "Kamerion, sans-serif",
+            textAlign: "center",
+            fontSize: { xs: "12px", md: "14px" },
+          }}
         >
           Don&apos;t have an account?{" "}
           <Link to="/admin/sign-up" style={{ color: "red", textDecoration: "none" }}>

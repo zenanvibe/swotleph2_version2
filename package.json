@@ -37,7 +37,7 @@
     "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start"
   },
   "engines": {
-    "node": "16.x"
+    "node": "18.x"
   },
   "eslintConfig": {
     "extends": [
