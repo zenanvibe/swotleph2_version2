@@ -2,14 +2,11 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import API from "../../../../api/config"; // Import API base URL
 
 function UserProfile() {
@@ -20,8 +17,8 @@ function UserProfile() {
   const [activeTab, setActiveTab] = useState("profile"); // "profile" or "comments"
   const textFieldRef = useRef(null);
   const commentsContainerRef = useRef(null);
-  const [scrollPosition, setScrollPosition] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   // Fetch user details on component mount
   useEffect(() => {
@@ -62,19 +59,18 @@ function UserProfile() {
     fetchComments();
   }, [id]);
 
-  // Only restore scroll position when comments change and not during initial load
+  // Restore cursor position after rendering
   useEffect(() => {
-    // Only restore scroll if we're not in the middle of submitting a comment
-    if (commentsContainerRef.current && activeTab === "comments" && !isSubmitting) {
-      commentsContainerRef.current.scrollTop = scrollPosition;
+    if (textFieldRef.current && activeTab === "comments") {
+      textFieldRef.current.focus();
+      textFieldRef.current.setSelectionRange(cursorPosition, cursorPosition);
     }
-  }, [comments, activeTab, scrollPosition, isSubmitting]);
+  }, [newComment, activeTab, cursorPosition]);
 
-  // Save scroll position when scrolling the comments container
-  const handleScroll = () => {
-    if (commentsContainerRef.current) {
-      setScrollPosition(commentsContainerRef.current.scrollTop);
-    }
+  // Handle comment input changes with proper cursor management
+  const handleCommentChange = (e) => {
+    setNewComment(e.target.value);
+    setCursorPosition(e.target.selectionStart);
   };
 
   if (!user) {
@@ -84,13 +80,8 @@ function UserProfile() {
   const handleSubmit = async () => {
     if (!newComment.trim()) return; // Don't submit empty comments
 
-    // Set submitting flag to prevent scroll restoration during submission
+    // Set submitting flag
     setIsSubmitting(true);
-
-    // Save current scroll position before submitting
-    if (commentsContainerRef.current) {
-      setScrollPosition(commentsContainerRef.current.scrollTop);
-    }
 
     const token = localStorage.getItem("token");
     const authorId = localStorage.getItem("userId");
@@ -112,18 +103,12 @@ function UserProfile() {
         throw new Error("Error adding comment");
       }
 
-      const addedComment = await response.json();
-
-      // Add the new comment to the existing comments array
-      setComments((prevComments) =>
-        Array.isArray(prevComments) ? [...prevComments, addedComment] : [addedComment]
-      );
-
+      // Clear the input field
       setNewComment("");
+      setCursorPosition(0);
 
-      // Refresh comments without losing scroll position
+      // Refresh comments and scroll to bottom
       const refreshComments = async () => {
-        const token = localStorage.getItem("token");
         try {
           const response = await fetch(`${API}comments/getcomments/${id}`, {
             method: "GET",
@@ -135,12 +120,15 @@ function UserProfile() {
           const commentsData = await response.json();
           setComments(commentsData);
 
-          // After comments are loaded, scroll to the saved position
+          // After updating comments, scroll to bottom smoothly
           setTimeout(() => {
             if (commentsContainerRef.current) {
-              commentsContainerRef.current.scrollTop = scrollPosition;
-              setIsSubmitting(false);
+              commentsContainerRef.current.scrollTo({
+                top: commentsContainerRef.current.scrollHeight,
+                behavior: "smooth",
+              });
             }
+            setIsSubmitting(false);
           }, 100);
         } catch (error) {
           console.error("Error refreshing comments:", error);
@@ -384,41 +372,24 @@ function UserProfile() {
           Add a New Comment
         </Typography>
         <Box sx={{ borderBottom: "1px solid #ccc", mb: 2 }}>
-          {/* Fixed TextField implementation with useRef for focus retention */}
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
+          {/* Using a native textarea with controlled cursor position */}
+          <textarea
+            ref={textFieldRef}
             value={newComment}
-            onChange={(e) => {
-              setNewComment(e.target.value);
-              // Optional: Force cursor to end after each keystroke
-              const input = e.target;
-              const length = input.value.length;
-              setTimeout(() => input.setSelectionRange(length, length), 0);
-            }}
-            inputRef={textFieldRef}
-            variant="outlined"
-            autoFocus
-            onFocus={() => {
-              // This timeout ensures the selection happens after React's rendering cycle
-              setTimeout(() => {
-                if (textFieldRef.current) {
-                  const length = textFieldRef.current.value.length;
-                  textFieldRef.current.setSelectionRange(length, length);
-                }
-              }, 0);
-            }}
-            sx={{
-              mb: 1,
-              "& .MuiOutlinedInput-root": {
-                fontFamily: "Kameron, serif",
-                fontSize: "16px",
-              },
-              "& .MuiOutlinedInput-notchedOutline": {
-                border: "none",
-              },
+            onChange={handleCommentChange}
+            onClick={(e) => setCursorPosition(e.target.selectionStart)}
+            onKeyUp={(e) => setCursorPosition(e.target.selectionStart)}
+            placeholder="Type your comment here..."
+            style={{
+              width: "100%",
               minHeight: "100px",
+              padding: "8px",
+              fontFamily: "Kameron, serif",
+              fontSize: "16px",
+              border: "none",
+              outline: "none",
+              resize: "vertical",
+              boxSizing: "border-box",
             }}
           />
         </Box>
@@ -450,9 +421,9 @@ function UserProfile() {
           borderRadius: "16px",
           maxHeight: "500px", // Set a max height
           overflow: "auto", // Make it scrollable
+          scrollBehavior: "smooth", // Enable smooth scrolling
         }}
         ref={commentsContainerRef}
-        onScroll={handleScroll} // Add scroll event handler
       >
         <Typography
           variant="h6"
@@ -468,7 +439,7 @@ function UserProfile() {
           <Box sx={{ position: "relative" }}>
             {comments.map((comment, index) => (
               <Box
-                key={comment.id}
+                key={comment.id || index}
                 sx={{
                   display: "flex",
                   mb: index === comments.length - 1 ? 0 : 4,
@@ -508,7 +479,7 @@ function UserProfile() {
                   )}
                 </Box>
 
-                {/* Comment content with date formatting like old code */}
+                {/* Comment content with date formatting */}
                 <Box sx={{ flex: 1, pl: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                     <Typography

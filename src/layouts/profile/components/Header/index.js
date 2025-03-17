@@ -77,6 +77,7 @@ function Header({ children }) {
           backgroundSize: "cover",
           backgroundPosition: "50%",
           overflow: "hidden",
+          mb: 4, // Adds 32px margin at the bottom
         }}
       />
       <Card sx={{}}>

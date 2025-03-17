@@ -1,19 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
+import { IconButton, Divider } from "@mui/material";
 import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
 import {
   Box,
-  Divider,
   Typography,
   Dialog,
   DialogActions,
@@ -38,6 +35,12 @@ function UserProfile() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [editingComment, setEditingComment] = useState(null);
   const [updatedComment, setUpdatedComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [editCursorPosition, setEditCursorPosition] = useState(0); // Add for edit comment cursor
+  const textFieldRef = useRef(null);
+  const editTextFieldRef = useRef(null); // Add ref for edit textarea
+  const commentsContainerRef = useRef(null);
 
   // Fetch user details on component mount
   useEffect(() => {
@@ -87,6 +90,32 @@ function UserProfile() {
     fetchUserData();
     fetchComments();
   }, [id]);
+
+  // Restore cursor position after rendering for both add and edit text areas
+  useEffect(() => {
+    if (textFieldRef.current && activeTab === "comments") {
+      textFieldRef.current.focus();
+      textFieldRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    }
+
+    // Add focus handling for edit text area
+    if (editTextFieldRef.current && editingComment) {
+      editTextFieldRef.current.focus();
+      editTextFieldRef.current.setSelectionRange(editCursorPosition, editCursorPosition);
+    }
+  }, [newComment, activeTab, cursorPosition, editingComment, updatedComment, editCursorPosition]);
+
+  // Handle comment input changes with proper cursor management
+  const handleCommentChange = (e) => {
+    setNewComment(e.target.value);
+    setCursorPosition(e.target.selectionStart);
+  };
+
+  // Handle edit comment input changes with proper cursor management
+  const handleEditCommentChange = (e) => {
+    setUpdatedComment(e.target.value);
+    setEditCursorPosition(e.target.selectionStart);
+  };
 
   if (!user) {
     return <div>Loading...</div>;
@@ -153,6 +182,11 @@ function UserProfile() {
   };
 
   const handleSubmit = async () => {
+    if (!newComment.trim()) return; // Don't submit empty comments
+
+    // Set submitting flag
+    setIsSubmitting(true);
+
     const token = localStorage.getItem("token");
     const authorId = localStorage.getItem("userId");
     try {
@@ -173,20 +207,47 @@ function UserProfile() {
         throw new Error("Error adding comment");
       }
 
-      const addedComment = await response.json();
-
-      // Ensure comments is always an array
-      setComments((prevComments) =>
-        Array.isArray(prevComments) ? [...prevComments, addedComment] : [addedComment]
-      );
-
+      // Clear the input field
       setNewComment("");
-      window.location.reload();
+      setCursorPosition(0);
+
+      // Refresh comments and scroll to bottom
+      const refreshComments = async () => {
+        try {
+          const response = await fetch(`${API}comments/getcomments/${id}`, {
+            method: "GET",
+            headers: {
+              Authorization: token ? `${token}` : "",
+              "Content-Type": "application/json",
+            },
+          });
+          const commentsData = await response.json();
+          setComments(commentsData);
+
+          // After updating comments, scroll to bottom smoothly
+          setTimeout(() => {
+            if (commentsContainerRef.current) {
+              commentsContainerRef.current.scrollTo({
+                top: commentsContainerRef.current.scrollHeight,
+                behavior: "smooth",
+              });
+            }
+            setIsSubmitting(false);
+          }, 100);
+        } catch (error) {
+          console.error("Error refreshing comments:", error);
+          setIsSubmitting(false);
+        }
+      };
+
+      refreshComments();
     } catch (error) {
       console.error("Error adding comment:", error);
+      setIsSubmitting(false);
     }
   };
 
+  // Updated handle save to reset cursor state as well
   const handleSave = async (commentId) => {
     const token = localStorage.getItem("token");
 
@@ -204,8 +265,6 @@ function UserProfile() {
         throw new Error("Error updating comment");
       }
 
-      const data = await response.json();
-
       setComments((prevComments) =>
         prevComments.map((comment) =>
           comment.id === commentId
@@ -216,6 +275,7 @@ function UserProfile() {
 
       setEditingComment(null);
       setUpdatedComment("");
+      setEditCursorPosition(0);
     } catch (error) {
       console.error("Error updating comment:", error);
     }
@@ -437,24 +497,24 @@ function UserProfile() {
           Add a New Comment
         </Typography>
         <Box sx={{ borderBottom: "1px solid #ccc", mb: 2 }}>
-          {/* Fixed the text area to allow continuous typing */}
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
+          {/* Using a native textarea with controlled cursor position */}
+          <textarea
+            ref={textFieldRef}
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            variant="outlined"
-            sx={{
-              height: "16px",
-              mb: 1,
-              "& .MuiOutlinedInput-root": {
-                fontFamily: "Kameron, serif",
-                fontSize: "16px",
-              },
-              "& .MuiOutlinedInput-notchedOutline": {
-                border: "none",
-              },
+            onChange={handleCommentChange}
+            onClick={(e) => setCursorPosition(e.target.selectionStart)}
+            onKeyUp={(e) => setCursorPosition(e.target.selectionStart)}
+            placeholder="Type your comment here..."
+            style={{
+              width: "100%",
+              minHeight: "100px",
+              padding: "8px",
+              fontFamily: "Kameron, serif",
+              fontSize: "16px",
+              border: "none",
+              outline: "none",
+              resize: "vertical",
+              boxSizing: "border-box",
             }}
           />
         </Box>
@@ -479,7 +539,17 @@ function UserProfile() {
         </Box>
       </Box>
 
-      <Box sx={{ padding: "20px", border: "1px solid #C4C4C4", borderRadius: "16px" }}>
+      <Box
+        sx={{
+          padding: "20px",
+          border: "1px solid #C4C4C4",
+          borderRadius: "16px",
+          maxHeight: "500px", // Set a max height
+          overflow: "auto", // Make it scrollable
+          scrollBehavior: "smooth", // Enable smooth scrolling
+        }}
+        ref={commentsContainerRef}
+      >
         <Typography
           variant="h6"
           mb={3}
@@ -494,7 +564,7 @@ function UserProfile() {
           <Box sx={{ position: "relative" }}>
             {comments.map((comment, index) => (
               <Box
-                key={comment.id}
+                key={comment.id || index}
                 sx={{
                   display: "flex",
                   mb: index === comments.length - 1 ? 0 : 4,
@@ -562,18 +632,23 @@ function UserProfile() {
                   {/* Comment editing/display */}
                   {editingComment === comment.id ? (
                     <Box sx={{ mt: 1 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        rows={2}
+                      <textarea
+                        ref={editTextFieldRef}
                         value={updatedComment}
-                        onChange={(e) => setUpdatedComment(e.target.value)}
-                        variant="outlined"
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            fontFamily: "Kameron, serif",
-                            fontSize: "16px",
-                          },
+                        onChange={handleEditCommentChange}
+                        onClick={(e) => setEditCursorPosition(e.target.selectionStart)}
+                        onKeyUp={(e) => setEditCursorPosition(e.target.selectionStart)}
+                        style={{
+                          width: "100%",
+                          minHeight: "80px",
+                          padding: "8px",
+                          fontFamily: "Kameron, serif",
+                          fontSize: "16px",
+                          border: "1px solid #C4C4C4",
+                          borderRadius: "4px",
+                          outline: "none",
+                          resize: "vertical",
+                          boxSizing: "border-box",
                         }}
                       />
                       <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
@@ -619,6 +694,16 @@ function UserProfile() {
                         onClick={() => {
                           setEditingComment(comment.id);
                           setUpdatedComment(comment.comment);
+                          // Set a small timeout to ensure the ref is available after render
+                          setTimeout(() => {
+                            if (editTextFieldRef.current) {
+                              editTextFieldRef.current.focus();
+                              // Place cursor at the end of text
+                              const length = comment.comment ? comment.comment.length : 0;
+                              editTextFieldRef.current.setSelectionRange(length, length);
+                              setEditCursorPosition(length);
+                            }
+                          }, 10);
                         }}
                         sx={{
                           color: "#0000FF",
@@ -739,21 +824,161 @@ function UserProfile() {
         </Grid>
       </MDBox>
 
-      {/* Modal for File Upload */}
-      <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>Upload Report</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Please choose the report file you want to upload.</DialogContentText>
-          <input type="file" onChange={handleFileChange} style={{ marginTop: "20px" }} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal} color="secondary">
-            Cancel
+      {/* Modal for File Upload - Fixed the duplicate Dialog issue */}
+      <Dialog
+        open={openModal}
+        onClose={handleCloseModal}
+        PaperProps={{
+          style: {
+            borderRadius: "10px",
+            padding: "20px",
+            maxWidth: "420px",
+            width: "100%",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            position: "relative",
+            mb: 2,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              fontSize: "18px",
+              textAlign: "center",
+              marginBottom: "-16px",
+            }}
+          >
+            Upload Report
+          </Typography>
+          <IconButton
+            onClick={handleCloseModal}
+            size="small"
+            sx={{
+              position: "absolute",
+              right: -10,
+              top: -10,
+              padding: 0,
+            }}
+          >
+            <Box
+              sx={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "50%",
+                backgroundColor: "#000",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                fontSize: "14px",
+              }}
+            >
+              ✕
+            </Box>
+          </IconButton>
+        </Box>
+
+        <Typography
+          sx={{
+            fontSize: "16px",
+            color: "#434343",
+            textAlign: "center",
+            marginBottom: "6px",
+          }}
+        >
+          Please choose the report file to upload
+        </Typography>
+
+        <Divider sx={{ mb: 3, backgroundColor: "#000000" }} />
+
+        <Box sx={{ position: "relative" }}>
+          <Box
+            sx={{
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+              p: "16px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              position: "relative",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "14px",
+                position: "absolute",
+                top: "-11px",
+                left: "8px",
+                backgroundColor: "#ffffff",
+                paddingX: "5px",
+              }}
+            >
+              Report Upload
+            </Typography>
+
+            <Button
+              component="label"
+              variant="outlined"
+              size="small"
+              sx={{
+                borderColor: "#ccc",
+                color: "#000",
+                textTransform: "none",
+                borderRadius: "4px",
+                fontSize: "14px",
+                height: "30px",
+                padding: "0 10px",
+                flexShrink: 0,
+              }}
+            >
+              Choose File
+              <input type="file" hidden onChange={handleFileChange} />
+            </Button>
+
+            <Typography
+              sx={{
+                fontSize: "14px",
+                color: "#FF0000",
+                flexGrow: 1,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {selectedFile ? selectedFile.name : "No file chosen"}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            onClick={handleFileUpload}
+            variant="contained"
+            sx={{
+              backgroundColor: "#FF3B30",
+              borderRadius: "6px",
+              marginTop: "15px",
+              padding: "6px 30px",
+              textTransform: "uppercase",
+              color: "#FFFFFF",
+              fontWeight: "medium",
+              width: "auto",
+              "&:hover": {
+                backgroundColor: "#E61E14",
+              },
+            }}
+          >
+            UPLOAD
           </Button>
-          <Button onClick={handleFileUpload} color="primary">
-            Upload
-          </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       {/* Snackbar for upload success message */}
