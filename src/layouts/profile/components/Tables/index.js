@@ -14,7 +14,7 @@ import API from "../../../../api/config";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
-import { Alert, Snackbar, Box, Divider, Typography } from "@mui/material";
+import { Alert, Snackbar, Box, Divider, Typography, CircularProgress } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 // Create a styled wrapper component to override the table header styles
@@ -507,7 +507,7 @@ function Tables() {
 
       {loading ? (
         <Box p={2} textAlign="center">
-          Loading...
+          <CircularProgress color="primary" />
         </Box>
       ) : (
         <>

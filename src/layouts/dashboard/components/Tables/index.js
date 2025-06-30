@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import Grid from "@mui/material/Grid";
+import { CircularProgress } from "@mui/material";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -12,7 +12,6 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
-import AddIcon from "@mui/icons-material/Add";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import API from "../../../../api/config";
@@ -264,7 +263,7 @@ function Tables() {
         {/* Table Content */}
         {loading ? (
           <MDBox display="flex" justifyContent="center" alignItems="center" height="300px">
-            <MDTypography>Loading...</MDTypography>
+            <CircularProgress size={32} sx={{ color: "#FF0000", verticalAlign: "middle" }} />
           </MDBox>
         ) : (
           <div

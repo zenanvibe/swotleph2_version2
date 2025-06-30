@@ -16,6 +16,7 @@ import {
   Select,
   useMediaQuery,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -52,6 +53,7 @@ function Dashboard() {
     numberOfEmployees: 0,
     numberOfCandidates: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -94,6 +96,7 @@ function Dashboard() {
     }
 
     const fetchData = async () => {
+      setLoading(true);
       try {
         const response = await fetch(`${API}card/dashboard/user/${userId}`, {
           method: "GET",
@@ -115,6 +118,8 @@ function Dashboard() {
         });
       } catch (error) {
         console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -144,7 +149,14 @@ function Dashboard() {
             >
               <Box>
                 <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: "bold", mb: 1 }}>
-                  Hello {userInfo.userName || "User"} !
+                  Hello{" "}
+                  {userInfo.userName || (
+                    <>
+                      {" "}
+                      <CircularProgress size={18} sx={{ ml: 1, verticalAlign: "middle" }} />
+                    </>
+                  )}{" "}
+                  !
                 </Typography>
                 <Typography variant={isMobile ? "body2" : "body1"} sx={{ color: "#666", mb: 0.5 }}>
                   It&apos;s good to see you again here 👋
@@ -153,7 +165,12 @@ function Dashboard() {
                   variant={isMobile ? "body2" : "body1"}
                   sx={{ color: "#f44336", fontWeight: "medium" }}
                 >
-                  {userInfo.companyName || "Brand Mindz Global Technology Pvt Ltd"}
+                  {userInfo.companyName || (
+                    <>
+                      {" "}
+                      <CircularProgress size={16} sx={{ ml: 1, verticalAlign: "middle" }} />
+                    </>
+                  )}
                 </Typography>
               </Box>
               <Box
@@ -194,7 +211,14 @@ function Dashboard() {
                 variant={isMobile ? "h4" : "h2"}
                 sx={{ fontWeight: "bold", color: "#444" }}
               >
-                {userInfo.numberOfCandidates || "00"}
+                {userInfo.numberOfCandidates !== 0 ? (
+                  userInfo.numberOfCandidates
+                ) : (
+                  <>
+                    {" "}
+                    <CircularProgress size={20} sx={{ ml: 1, verticalAlign: "middle" }} />
+                  </>
+                )}
               </Typography>
             </Box>
           </Grid>
@@ -225,7 +249,14 @@ function Dashboard() {
                 variant={isMobile ? "h4" : "h2"}
                 sx={{ fontWeight: "bold", color: "#444" }}
               >
-                {userInfo.numberOfEmployees || "0"}
+                {loading ? (
+                  <>
+                    {" "}
+                    <CircularProgress size={20} sx={{ ml: 1, verticalAlign: "middle" }} />
+                  </>
+                ) : (
+                  userInfo.numberOfEmployees
+                )}
               </Typography>
             </Box>
           </Grid>

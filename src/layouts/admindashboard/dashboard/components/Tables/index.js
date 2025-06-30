@@ -9,6 +9,7 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import API from "../../../../../api/config";
+import CircularProgress from "@mui/material/CircularProgress";
 
 function CompanyTable() {
   const [companies, setCompanies] = useState([]);
@@ -109,7 +110,7 @@ function CompanyTable() {
         {/* Table Content */}
         {loading ? (
           <MDBox display="flex" justifyContent="center" alignItems="center" height="300px">
-            <MDTypography>Loading...</MDTypography>
+            <CircularProgress color="error" />
           </MDBox>
         ) : (
           <div

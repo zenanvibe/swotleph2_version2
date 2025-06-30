@@ -3,7 +3,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Tables from "./components/Tables";
 import MDBox from "components/MDBox";
-import { Grid, Card, Typography, Box } from "@mui/material";
+import { Grid, Card, Typography, Box, CircularProgress } from "@mui/material";
 import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import GroupIcon from "@mui/icons-material/Group";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -121,7 +121,11 @@ function Dashboard() {
                     {title}
                   </Typography>
                   <Typography variant="h1" fontWeight="700" sx={{ color: color, fontSize: "40px" }}>
-                    {loading ? "Loading..." : stats[key].toString().padStart(2, "0")}
+                    {loading ? (
+                      <CircularProgress size={32} sx={{ color: color, verticalAlign: "middle" }} />
+                    ) : (
+                      stats[key].toString().padStart(2, "0")
+                    )}
                   </Typography>
                 </Box>
 
