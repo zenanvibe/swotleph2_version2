@@ -10,6 +10,7 @@ import {
   Alert,
   Snackbar,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
@@ -26,6 +27,7 @@ function Basic() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,7 +77,8 @@ function Basic() {
       return;
     }
 
-    const payload = { email, password, roles: "company" };
+    setLoading(true);
+    const payload = { email, password, role: "company" };
 
     try {
       const response = await fetch(`${API}auth/login`, {
@@ -89,7 +92,7 @@ function Basic() {
       if (response.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.userId);
-        localStorage.setItem("roles", data.roles);
+        localStorage.setItem("role", data.role);
         localStorage.setItem("company_id", data.company_id);
         navigate("/dashboard");
       } else {
@@ -100,6 +103,8 @@ function Basic() {
       console.error("Error:", error);
       setError("Network error. Please try again later.");
       setOpenAlert(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -270,8 +275,9 @@ function Basic() {
               "&:hover": { bgcolor: "#B71C1C" },
               py: { xs: 1.2, md: 1.5 },
             }}
+            disabled={loading}
           >
-            LOGIN
+            {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "LOGIN"}
           </Button>
         </Box>
 

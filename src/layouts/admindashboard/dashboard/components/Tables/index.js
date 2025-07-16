@@ -10,6 +10,11 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import API from "../../../../../api/config";
 import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import TextField from "@mui/material/TextField";
+import colors from "assets/theme/base/colors";
 
 function CompanyTable() {
   const [companies, setCompanies] = useState([]);
@@ -17,6 +22,7 @@ function CompanyTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [totalCompanies, setTotalCompanies] = useState(0);
+  const [searchTerm, setSearchTerm] = useState(""); // <-- Add search term state
 
   const navigate = useNavigate();
 
@@ -53,25 +59,31 @@ function CompanyTable() {
     fetchCompanies();
   }, []);
 
-  // Handle view click
-  const handleViewClick = (companyId) => {
-    sessionStorage.setItem("selectedCompanyId", companyId);
-    navigate("/admin/profile");
-  };
+  // Filter companies by search term
+  const filteredCompanies = companies.filter(
+    (company) =>
+      company.company_name && company.company_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Calculate paginated data
+  // Calculate paginated data (use filteredCompanies)
   const getPaginatedData = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return companies.slice(startIndex, endIndex);
+    return filteredCompanies.slice(startIndex, endIndex);
   };
 
-  // Calculate total pages
-  const totalPages = Math.max(1, Math.ceil(totalCompanies / itemsPerPage));
+  // Calculate total pages (use filteredCompanies)
+  const totalPages = Math.max(1, Math.ceil(filteredCompanies.length / itemsPerPage));
 
   // Handle page change
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
+  };
+
+  // Handle view click
+  const handleViewClick = (companyId) => {
+    sessionStorage.setItem("selectedCompanyId", companyId);
+    navigate("/admin/profile");
   };
 
   return (
@@ -85,13 +97,16 @@ function CompanyTable() {
           margin: "0 auto", // Center the table
         }}
       >
+        {/* Search Bar */}
         {/* Table Header */}
         <div
           style={{
             backgroundColor: "white",
             padding: "15px 20px",
             borderBottom: "3px solid #D9D9D9",
-            textAlign: "center", // Center the title
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
           <MDTypography
@@ -101,10 +116,35 @@ function CompanyTable() {
             style={{
               fontFamily: "Roboto, sans-serif",
               fontSize: "20px",
+              textAlign: "left",
             }}
           >
             Company Table
           </MDTypography>
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search by company name..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            sx={{
+              width: 300,
+              backgroundColor: "#f8f9fa",
+              borderRadius: 2,
+              "& .MuiOutlinedInput-root": {
+                fontFamily: "Kameron, sans-serif",
+                fontSize: "15px",
+              },
+            }}
+            InputProps={{
+              style: {
+                paddingRight: 0,
+              },
+            }}
+          />
         </div>
 
         {/* Table Content */}
@@ -144,21 +184,21 @@ function CompanyTable() {
                     </th>
                     <th
                       style={{
-                        padding: "12px 15px",
-                        textAlign: "left",
+                        padding: "12px 15px", // Slightly reduced padding
+                        textAlign: "center",
                         fontFamily: "Poppins, sans-serif",
                         fontSize: "16px",
                         fontWeight: "regular",
                         color: "#000000",
-                        borderBottom: "1px solid #eee",
+                        borderBottom: "1px solid #eee", // Add border for better separation
                       }}
                     >
-                      Candidate
+                      Interview Candidate
                     </th>
                     <th
                       style={{
                         padding: "12px 15px",
-                        textAlign: "left",
+                        textAlign: "center",
                         fontFamily: "Poppins, sans-serif",
                         fontSize: "16px",
                         fontWeight: "regular",
@@ -166,7 +206,7 @@ function CompanyTable() {
                         borderBottom: "1px solid #eee",
                       }}
                     >
-                      Employee
+                      Exisiting Employee
                     </th>
                     <th
                       style={{
@@ -195,7 +235,33 @@ function CompanyTable() {
                           color: "#555555",
                         }}
                       >
-                        {company.company_name || "N/A"}
+                        {/* Highlight search term in company name */}
+                        {(() => {
+                          const name = company.company_name || "N/A";
+                          if (!searchTerm) return name;
+                          const idx = name.toLowerCase().indexOf(searchTerm.toLowerCase());
+                          if (idx === -1) return name;
+                          const before = name.slice(0, idx);
+                          const match = name.slice(idx, idx + searchTerm.length);
+                          const after = name.slice(idx + searchTerm.length);
+                          return (
+                            <>
+                              {before}
+                              <span
+                                style={{
+                                  background: colors.primary.main + "22", // subtle highlight
+                                  color: colors.primary.main,
+                                  fontWeight: 700,
+                                  borderRadius: "4px",
+                                  padding: "0 2px",
+                                }}
+                              >
+                                {match}
+                              </span>
+                              {after}
+                            </>
+                          );
+                        })()}
                       </td>
                       <td
                         style={{
@@ -204,6 +270,7 @@ function CompanyTable() {
                           fontFamily: "Kameron, sans-serif",
                           fontWeight: "normal",
                           color: "#555555",
+                          textAlign: "center",
                         }}
                       >
                         {company.number_of_candidates || "0"}
@@ -215,6 +282,7 @@ function CompanyTable() {
                           fontFamily: "Kameron, sans-serif",
                           fontWeight: "normal",
                           color: "#555555",
+                          textAlign: "center",
                         }}
                       >
                         {company.number_of_employees || "0"}
@@ -242,6 +310,12 @@ function CompanyTable() {
                         >
                           View
                         </Button>
+                        <IconButton size="small" style={{ marginLeft: 4 }}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" style={{ marginLeft: 2 }}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
                       </td>
                     </tr>
                   ))}

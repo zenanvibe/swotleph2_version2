@@ -9,6 +9,7 @@ import {
   IconButton,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
@@ -31,6 +32,7 @@ function Cover() {
   const [companyName, setCompanyName] = useState("");
   const [error, setError] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const sidebarElement = document.querySelector(".sidebar-container");
@@ -63,6 +65,7 @@ function Cover() {
     setError("");
 
     if (!validateForm()) return;
+    setLoading(true);
 
     const payload = { name, email, phone, password, company_name: companyName };
 
@@ -82,6 +85,8 @@ function Cover() {
     } catch (error) {
       setError("Connection error. Please check your internet connection.");
       setOpenAlert(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -242,8 +247,9 @@ function Cover() {
                   "&:hover": { bgcolor: "darkred" },
                   px: 4,
                 }}
+                disabled={loading}
               >
-                SIGN UP
+                {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "SIGN UP"}
               </Button>
             </Box>
           </Box>

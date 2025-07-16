@@ -203,9 +203,15 @@ function Dashboard() {
               <PersonIcon sx={{ fontSize: isMobile ? 24 : 32, color: "#000", mb: 1 }} />
               <Typography
                 variant={isMobile ? "subtitle1" : "h6"}
-                sx={{ fontWeight: "medium", color: "#f44336", mb: 1 }}
+                sx={{
+                  fontWeight: "medium",
+                  color: "#f44336",
+                  mb: 1,
+                  textAlign: "center",
+                  width: "100%",
+                }}
               >
-                Candidates
+                Interview Candidate
               </Typography>
               <Typography
                 variant={isMobile ? "h4" : "h2"}
@@ -241,9 +247,15 @@ function Dashboard() {
               <GroupIcon sx={{ fontSize: isMobile ? 24 : 32, color: "#000", mb: 1 }} />
               <Typography
                 variant={isMobile ? "subtitle1" : "h6"}
-                sx={{ fontWeight: "medium", color: "#f44336", mb: 1 }}
+                sx={{
+                  fontWeight: "medium",
+                  color: "#f44336",
+                  mb: 1,
+                  textAlign: "center",
+                  width: "100%",
+                }}
               >
-                Employees
+                Exisiting Employee
               </Typography>
               <Typography
                 variant={isMobile ? "h4" : "h2"}

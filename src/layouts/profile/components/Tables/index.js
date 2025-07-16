@@ -14,8 +14,21 @@ import API from "../../../../api/config";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
-import { Alert, Snackbar, Box, Divider, Typography, CircularProgress } from "@mui/material";
+import {
+  Alert,
+  Snackbar,
+  Box,
+  Divider,
+  Typography,
+  CircularProgress,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
+import colors from "assets/theme/base/colors";
 
 // Create a styled wrapper component to override the table header styles
 const CustomTableWrapper = styled(Box)({
@@ -55,6 +68,9 @@ function Tables() {
   });
   const [editingUser, setEditingUser] = useState(null);
   const [originalUserData, setOriginalUserData] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -105,10 +121,25 @@ function Tables() {
     setNotification({ ...notification, open: false });
   };
 
+  // Filter users by search term (name, email, phone, role)
+  const filteredUsers = users.filter((user) => {
+    const name = user.name || "";
+    const email = user.email || "";
+    const phone = user.phone || "";
+    const role = user.role || "";
+    const term = searchTerm.toLowerCase();
+    return (
+      name.toLowerCase().includes(term) ||
+      email.toLowerCase().includes(term) ||
+      phone.toLowerCase().includes(term) ||
+      role.toLowerCase().includes(term)
+    );
+  });
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -181,9 +212,15 @@ function Tables() {
 
   const handleDelete = async (index) => {
     const actualIndex = indexOfFirstItem + index;
+    setUserToDelete({ index, actualIndex });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (userToDelete == null) return;
+    const { actualIndex } = userToDelete;
     const user = users[actualIndex];
     const token = localStorage.getItem("token");
-
     try {
       const response = await fetch(`${API}company/users/${user.user_id}`, {
         method: "DELETE",
@@ -192,17 +229,23 @@ function Tables() {
           "Content-Type": "application/json",
         },
       });
-
       if (!response.ok) {
         throw new Error("Failed to delete user");
       }
-
       const updatedUsers = users.filter((_, i) => i !== actualIndex);
       setUsers(updatedUsers);
       showNotification("User deleted successfully", "success");
     } catch (error) {
       showNotification("Error deleting user: " + error.message, "error");
+    } finally {
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
   };
 
   const handleView = (userId) => {
@@ -341,7 +384,32 @@ function Tables() {
             onChange={(e) => handleInputChange(index, "name", e.target.value)}
           />
         ) : (
-          user.name
+          (() => {
+            const name = user.name || "N/A";
+            if (!searchTerm) return name;
+            const idx = name.toLowerCase().indexOf(searchTerm.toLowerCase());
+            if (idx === -1) return name;
+            const before = name.slice(0, idx);
+            const match = name.slice(idx, idx + searchTerm.length);
+            const after = name.slice(idx + searchTerm.length);
+            return (
+              <>
+                {before}
+                <span
+                  style={{
+                    background: colors.primary.main + "22",
+                    color: colors.primary.main,
+                    fontWeight: 700,
+                    borderRadius: "4px",
+                    padding: "0 2px",
+                  }}
+                >
+                  {match}
+                </span>
+                {after}
+              </>
+            );
+          })()
         )}
       </Typography>
     ),
@@ -361,7 +429,32 @@ function Tables() {
             onChange={(e) => handleInputChange(index, "email", e.target.value)}
           />
         ) : (
-          user.email
+          (() => {
+            const email = user.email || "N/A";
+            if (!searchTerm) return email;
+            const idx = email.toLowerCase().indexOf(searchTerm.toLowerCase());
+            if (idx === -1) return email;
+            const before = email.slice(0, idx);
+            const match = email.slice(idx, idx + searchTerm.length);
+            const after = email.slice(idx + searchTerm.length);
+            return (
+              <>
+                {before}
+                <span
+                  style={{
+                    background: colors.primary.main + "22",
+                    color: colors.primary.main,
+                    fontWeight: 700,
+                    borderRadius: "4px",
+                    padding: "0 2px",
+                  }}
+                >
+                  {match}
+                </span>
+                {after}
+              </>
+            );
+          })()
         )}
       </Typography>
     ),
@@ -381,7 +474,32 @@ function Tables() {
             onChange={(e) => handleInputChange(index, "phone", e.target.value)}
           />
         ) : (
-          user.phone
+          (() => {
+            const phone = user.phone || "N/A";
+            if (!searchTerm) return phone;
+            const idx = phone.toLowerCase().indexOf(searchTerm.toLowerCase());
+            if (idx === -1) return phone;
+            const before = phone.slice(0, idx);
+            const match = phone.slice(idx, idx + searchTerm.length);
+            const after = phone.slice(idx + searchTerm.length);
+            return (
+              <>
+                {before}
+                <span
+                  style={{
+                    background: colors.primary.main + "22",
+                    color: colors.primary.main,
+                    fontWeight: 700,
+                    borderRadius: "4px",
+                    padding: "0 2px",
+                  }}
+                >
+                  {match}
+                </span>
+                {after}
+              </>
+            );
+          })()
         )}
       </Typography>
     ),
@@ -401,7 +519,32 @@ function Tables() {
             onChange={(e) => handleInputChange(index, "role", e.target.value)}
           />
         ) : (
-          user.role
+          (() => {
+            const role = user.role || "N/A";
+            if (!searchTerm) return role;
+            const idx = role.toLowerCase().indexOf(searchTerm.toLowerCase());
+            if (idx === -1) return role;
+            const before = role.slice(0, idx);
+            const match = role.slice(idx, idx + searchTerm.length);
+            const after = role.slice(idx + searchTerm.length);
+            return (
+              <>
+                {before}
+                <span
+                  style={{
+                    background: colors.primary.main + "22",
+                    color: colors.primary.main,
+                    fontWeight: 700,
+                    borderRadius: "4px",
+                    padding: "0 2px",
+                  }}
+                >
+                  {match}
+                </span>
+                {after}
+              </>
+            );
+          })()
         )}
       </Typography>
     ),
@@ -484,13 +627,16 @@ function Tables() {
 
   return (
     <Card sx={{ borderRadius: "10px", boxShadow: "0 2px 12px 0 rgba(0,0,0,0.1)" }}>
-      {/* Header styled according to Image 2 */}
+      {/* Header styled according to Image 2, now with search bar */}
       <Box
         sx={{
           width: "100%",
           padding: "16px",
           borderBottom: "1px solid #eee",
           marginBottom: "32px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
         <Typography
@@ -498,11 +644,35 @@ function Tables() {
             fontSize: "19px",
             color: "#f44336",
             fontWeight: 700,
-            textAlign: "center",
+            textAlign: "left",
           }}
         >
           Profile Table
         </Typography>
+        <TextField
+          variant="outlined"
+          size="small"
+          placeholder="Search by name, email, phone, or role"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          sx={{
+            width: 300,
+            backgroundColor: "#f8f9fa",
+            borderRadius: 2,
+            "& .MuiOutlinedInput-root": {
+              fontFamily: "Kameron, sans-serif",
+              fontSize: "15px",
+            },
+          }}
+          InputProps={{
+            style: {
+              paddingRight: 0,
+            },
+          }}
+        />
       </Box>
 
       {loading ? (
@@ -614,6 +784,21 @@ function Tables() {
           {notification.message}
         </Alert>
       </Snackbar>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={cancelDelete}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this user? This action cannot be undone.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDelete} color="primary" variant="outlined">
+            <span style={{ color: "#1976d2" }}>Cancel</span>
+          </Button>
+          <Button onClick={confirmDelete} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 }

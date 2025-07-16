@@ -26,7 +26,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode } = controller;
 
   // Get role from localStorage (or any other state management method)
-  const role = localStorage.getItem("roles"); // ✅ Fix: Define role properly
+  const role = localStorage.getItem("role"); // ✅ Fix: Define role properly
   const isAdmin = role === "admin";
 
   // Always use white text color for the red background
@@ -77,7 +77,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     // Clear user-related data
     localStorage.removeItem("company_id");
     localStorage.removeItem("authenticated");
-    localStorage.removeItem("roles");
+    localStorage.removeItem("role");
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
 

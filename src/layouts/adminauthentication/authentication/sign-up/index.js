@@ -9,6 +9,7 @@ import {
   IconButton,
   Alert,
   Snackbar,
+  CircularProgress,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
@@ -26,6 +27,7 @@ function Cover() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Hide navbar when component mounts
@@ -97,6 +99,7 @@ function Cover() {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await fetch(`${API}auth/register`, {
         method: "POST",
@@ -107,7 +110,7 @@ function Cover() {
           name: name,
           email: email,
           password: password,
-          roles: "admin",
+          role: "admin",
         }),
       });
 
@@ -117,6 +120,7 @@ function Cover() {
         // Show error message from API or a default message
         setError(data.message || "Registration failed. Please try again.");
         setOpenAlert(true);
+        setLoading(false);
         return;
       }
 
@@ -126,6 +130,8 @@ function Cover() {
       console.error("Registration failed", error);
       setError("Network error. Please try again later.");
       setOpenAlert(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -266,8 +272,9 @@ function Cover() {
                   "&:hover": { bgcolor: "darkred" },
                   px: 4,
                 }}
+                disabled={loading}
               >
-                SIGN UP
+                {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "SIGN UP"}
               </Button>
             </Box>
           </Box>

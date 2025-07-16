@@ -59,7 +59,7 @@ function DashboardNavbar({ absolute, light, isMini, role }) {
     // Clear user-related data (if needed, such as tokens, localStorage)
     localStorage.removeItem("company_id");
     localStorage.removeItem("authenticated");
-    localStorage.removeItem("roles");
+    localStorage.removeItem("role");
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
 

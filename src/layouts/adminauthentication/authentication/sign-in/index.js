@@ -10,6 +10,7 @@ import {
   Alert,
   Snackbar,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
@@ -26,6 +27,7 @@ function Basic() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Hide navbar when component mounts
@@ -81,6 +83,7 @@ function Basic() {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await fetch(`${API}auth/login`, {
         method: "POST",
@@ -90,7 +93,7 @@ function Basic() {
         body: JSON.stringify({
           email: email,
           password: password,
-          roles: "admin",
+          role: "admin",
         }),
       });
 
@@ -100,15 +103,16 @@ function Basic() {
         // Show error message from API or a default message
         setError("Authentication failed. Please check your credentials.");
         setOpenAlert(true);
+        setLoading(false);
         return;
       }
 
       // Store the response values in localStorage
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("token", data.token);
-      // Set the roles in localStorage to the admin's user id from the API response if role is admin
+      // Set the role in localStorage to the admin's user id from the API response if role is admin
       if (data.role === "admin") {
-        localStorage.setItem("roles", data.userId); // Set to the user's ID if role is 'admin'
+        localStorage.setItem("role", data.userId); // Set to the user's ID if role is 'admin'
       }
       localStorage.setItem("company_id", data.company_id);
 
@@ -118,6 +122,8 @@ function Basic() {
       console.error("Login failed", error);
       setError("Network error. Please try again later.");
       setOpenAlert(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -283,8 +289,9 @@ function Basic() {
               justifyContent: "center",
               py: { xs: 1.2, md: 1.5 },
             }}
+            disabled={loading}
           >
-            LOGIN
+            {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "LOGIN"}
           </Button>
         </Box>
 

@@ -24,6 +24,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import colors from "assets/theme/base/colors";
 
 function Tables() {
   const [users, setUsers] = useState([]);
@@ -35,6 +36,7 @@ function Tables() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [newUser, setNewUser] = useState({
     name: "",
@@ -111,15 +113,29 @@ function Tables() {
     }
   };
 
-  // Calculate paginated data
+  // Filter users by search term (name, role, date)
+  const filteredUsers = users.filter((user) => {
+    const name = user.name || "";
+    const role = user.role || "";
+    const dateRaw = user.created_at || user.dateofsubmission || "";
+    const date = formatDate(dateRaw);
+    const term = searchTerm.toLowerCase();
+    return (
+      name.toLowerCase().includes(term) ||
+      role.toLowerCase().includes(term) ||
+      date.toLowerCase().includes(term)
+    );
+  });
+
+  // Calculate paginated data (use filteredUsers)
   const getPaginatedData = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return users.slice(startIndex, endIndex);
+    return filteredUsers.slice(startIndex, endIndex);
   };
 
-  // Calculate total pages
-  const totalPages = Math.max(1, Math.ceil(totalUsers / itemsPerPage));
+  // Calculate total pages (use filteredUsers)
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
 
   // Handle page change
   const handlePageChange = (pageNumber) => {
@@ -238,13 +254,15 @@ function Tables() {
           margin: "0 auto", // Center the table
         }}
       >
-        {/* Table Header */}
+        {/* Table Header with Search Bar */}
         <div
           style={{
             backgroundColor: "white",
             padding: "15px 20px",
             borderBottom: "3px solid #D9D9D9",
-            textAlign: "center", // Center the title
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
           <MDTypography
@@ -254,10 +272,35 @@ function Tables() {
             style={{
               fontFamily: "Roboto, sans-serif",
               fontSize: "20px",
+              textAlign: "left",
             }}
           >
             Users Table
           </MDTypography>
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search by name, role, date"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            sx={{
+              width: 300,
+              backgroundColor: "#f8f9fa",
+              borderRadius: 2,
+              "& .MuiOutlinedInput-root": {
+                fontFamily: "Kameron, sans-serif",
+                fontSize: "15px",
+              },
+            }}
+            InputProps={{
+              style: {
+                paddingRight: 0,
+              },
+            }}
+          />
         </div>
 
         {/* Table Content */}
@@ -348,7 +391,33 @@ function Tables() {
                           color: "#555555",
                         }}
                       >
-                        {user.name || "N/A"}
+                        {/* Highlight search term in name */}
+                        {(() => {
+                          const name = user.name || "N/A";
+                          if (!searchTerm) return name;
+                          const idx = name.toLowerCase().indexOf(searchTerm.toLowerCase());
+                          if (idx === -1) return name;
+                          const before = name.slice(0, idx);
+                          const match = name.slice(idx, idx + searchTerm.length);
+                          const after = name.slice(idx + searchTerm.length);
+                          return (
+                            <>
+                              {before}
+                              <span
+                                style={{
+                                  background: colors.primary.main + "22",
+                                  color: colors.primary.main,
+                                  fontWeight: 700,
+                                  borderRadius: "4px",
+                                  padding: "0 2px",
+                                }}
+                              >
+                                {match}
+                              </span>
+                              {after}
+                            </>
+                          );
+                        })()}
                       </td>
                       <td
                         style={{
@@ -359,7 +428,33 @@ function Tables() {
                           color: "#555555",
                         }}
                       >
-                        {user.role || "N/A"}
+                        {/* Highlight search term in role */}
+                        {(() => {
+                          const role = user.role || "N/A";
+                          if (!searchTerm) return role;
+                          const idx = role.toLowerCase().indexOf(searchTerm.toLowerCase());
+                          if (idx === -1) return role;
+                          const before = role.slice(0, idx);
+                          const match = role.slice(idx, idx + searchTerm.length);
+                          const after = role.slice(idx + searchTerm.length);
+                          return (
+                            <>
+                              {before}
+                              <span
+                                style={{
+                                  background: colors.primary.main + "22",
+                                  color: colors.primary.main,
+                                  fontWeight: 700,
+                                  borderRadius: "4px",
+                                  padding: "0 2px",
+                                }}
+                              >
+                                {match}
+                              </span>
+                              {after}
+                            </>
+                          );
+                        })()}
                       </td>
                       <td
                         style={{
@@ -370,7 +465,34 @@ function Tables() {
                           color: "#555555",
                         }}
                       >
-                        {formatDate(user.created_at || user.dateofsubmission)}
+                        {/* Highlight search term in date of submission */}
+                        {(() => {
+                          const dateRaw = user.created_at || user.dateofsubmission;
+                          const date = formatDate(dateRaw);
+                          if (!searchTerm) return date;
+                          const idx = date.toLowerCase().indexOf(searchTerm.toLowerCase());
+                          if (idx === -1) return date;
+                          const before = date.slice(0, idx);
+                          const match = date.slice(idx, idx + searchTerm.length);
+                          const after = date.slice(idx + searchTerm.length);
+                          return (
+                            <>
+                              {before}
+                              <span
+                                style={{
+                                  background: colors.primary.main + "22",
+                                  color: colors.primary.main,
+                                  fontWeight: 700,
+                                  borderRadius: "4px",
+                                  padding: "0 2px",
+                                }}
+                              >
+                                {match}
+                              </span>
+                              {after}
+                            </>
+                          );
+                        })()}
                       </td>
                       <td
                         style={{
@@ -604,7 +726,7 @@ function Tables() {
               label: "Role",
               name: "role",
               isSelect: true,
-              options: ["", "Candidate", "Employee"],
+              options: ["", "Interview Candidate", "Exisiting Employee"],
             },
             {
               label: "Gender",
