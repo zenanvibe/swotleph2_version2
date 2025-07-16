@@ -15,6 +15,12 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import TextField from "@mui/material/TextField";
 import colors from "assets/theme/base/colors";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 
 function CompanyTable() {
   const [companies, setCompanies] = useState([]);
@@ -23,39 +29,39 @@ function CompanyTable() {
   const [itemsPerPage] = useState(5);
   const [totalCompanies, setTotalCompanies] = useState(0);
   const [searchTerm, setSearchTerm] = useState(""); // <-- Add search term state
+  const [editCompanyId, setEditCompanyId] = useState(null);
+  const [editCompanyName, setEditCompanyName] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const navigate = useNavigate();
 
-  // Fetch companies data
-  useEffect(() => {
+  // Fetch companies data (move outside useEffect for global access)
+  const fetchCompanies = async () => {
     const token = localStorage.getItem("token");
+    setLoading(true);
+    try {
+      const response = await fetch(`${API}company`, {
+        method: "GET",
+        headers: {
+          Authorization: token,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch company data");
+      const data = await response.json();
+      setCompanies(data);
+      setTotalCompanies(data.length);
+    } catch (error) {
+      setSnackbar({ open: true, message: "Failed to load company data.", severity: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchCompanies = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`${API}company`, {
-          method: "GET",
-          headers: {
-            Authorization: token,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch company data");
-        }
-
-        const data = await response.json();
-        setCompanies(data);
-        setTotalCompanies(data.length);
-      } catch (error) {
-        console.error("Error fetching companies:", error);
-        alert("Failed to load company data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchCompanies();
   }, []);
 
@@ -84,6 +90,75 @@ function CompanyTable() {
   const handleViewClick = (companyId) => {
     sessionStorage.setItem("selectedCompanyId", companyId);
     navigate("/admin/profile");
+  };
+
+  // Edit handlers
+  const handleEditClick = (company) => {
+    setEditCompanyId(company.company_id);
+    setEditCompanyName(company.company_name);
+  };
+  const handleEditCancel = () => {
+    setEditCompanyId(null);
+    setEditCompanyName("");
+  };
+  const handleEditSave = async (company) => {
+    setActionLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      const putResponse = await fetch(
+        `http://localhost:5000/api/v2/company/${company.company_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+          body: JSON.stringify({ company_name: editCompanyName }),
+        }
+      );
+      if (!putResponse.ok) throw new Error("Failed to update company");
+      setSnackbar({ open: true, message: "Company edited!", severity: "success" });
+      setEditCompanyId(null);
+      setEditCompanyName("");
+      fetchCompanies();
+    } catch (error) {
+      setSnackbar({ open: true, message: error.message, severity: "error" });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Delete handlers
+  const handleDeleteClick = (company) => {
+    setCompanyToDelete(company);
+    setDeleteDialogOpen(true);
+  };
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setCompanyToDelete(null);
+  };
+  const handleDeleteConfirm = async () => {
+    if (!companyToDelete) return;
+    setActionLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      const deleteResponse = await fetch(
+        `http://localhost:5000/api/v2/company/${companyToDelete.company_id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: token },
+        }
+      );
+      if (!deleteResponse.ok) throw new Error("Failed to delete company");
+      setSnackbar({ open: true, message: "Company deleted!", severity: "success" });
+      setDeleteDialogOpen(false);
+      setCompanyToDelete(null);
+      fetchCompanies();
+    } catch (error) {
+      setSnackbar({ open: true, message: error.message, severity: "error" });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -235,33 +310,43 @@ function CompanyTable() {
                           color: "#555555",
                         }}
                       >
-                        {/* Highlight search term in company name */}
-                        {(() => {
-                          const name = company.company_name || "N/A";
-                          if (!searchTerm) return name;
-                          const idx = name.toLowerCase().indexOf(searchTerm.toLowerCase());
-                          if (idx === -1) return name;
-                          const before = name.slice(0, idx);
-                          const match = name.slice(idx, idx + searchTerm.length);
-                          const after = name.slice(idx + searchTerm.length);
-                          return (
-                            <>
-                              {before}
-                              <span
-                                style={{
-                                  background: colors.primary.main + "22", // subtle highlight
-                                  color: colors.primary.main,
-                                  fontWeight: 700,
-                                  borderRadius: "4px",
-                                  padding: "0 2px",
-                                }}
-                              >
-                                {match}
-                              </span>
-                              {after}
-                            </>
-                          );
-                        })()}
+                        {/* Highlight search term in company name or edit mode */}
+                        {editCompanyId === company.company_id ? (
+                          <TextField
+                            value={editCompanyName}
+                            onChange={(e) => setEditCompanyName(e.target.value)}
+                            size="small"
+                            autoFocus
+                            sx={{ width: 180 }}
+                          />
+                        ) : (
+                          (() => {
+                            const name = company.company_name || "N/A";
+                            if (!searchTerm) return name;
+                            const idx = name.toLowerCase().indexOf(searchTerm.toLowerCase());
+                            if (idx === -1) return name;
+                            const before = name.slice(0, idx);
+                            const match = name.slice(idx, idx + searchTerm.length);
+                            const after = name.slice(idx + searchTerm.length);
+                            return (
+                              <>
+                                {before}
+                                <span
+                                  style={{
+                                    background: colors.primary.main + "22", // subtle highlight
+                                    color: colors.primary.main,
+                                    fontWeight: 700,
+                                    borderRadius: "4px",
+                                    padding: "0 2px",
+                                  }}
+                                >
+                                  {match}
+                                </span>
+                                {after}
+                              </>
+                            );
+                          })()
+                        )}
                       </td>
                       <td
                         style={{
@@ -310,12 +395,65 @@ function CompanyTable() {
                         >
                           View
                         </Button>
-                        <IconButton size="small" style={{ marginLeft: 4 }}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" style={{ marginLeft: 2 }}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {editCompanyId === company.company_id ? (
+                          <>
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="small"
+                              onClick={() => handleEditSave(company)}
+                              disabled={actionLoading}
+                              sx={{
+                                backgroundColor: "#4CAF50",
+                                color: "#FFFFFF",
+                                borderRadius: "4px",
+                                textTransform: "none",
+                                fontWeight: 400,
+                                ml: 1,
+                                minWidth: "60px",
+                                "&:hover": { backgroundColor: "#45a049" },
+                              }}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              variant="contained"
+                              color="error"
+                              size="small"
+                              onClick={handleEditCancel}
+                              disabled={actionLoading}
+                              sx={{
+                                backgroundColor: "#f44336",
+                                color: "#FFFFFF",
+                                borderRadius: "4px",
+                                textTransform: "none",
+                                fontWeight: 400,
+                                ml: 1,
+                                minWidth: "60px",
+                                "&:hover": { backgroundColor: "#d32f2f" },
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <IconButton
+                              size="small"
+                              style={{ marginLeft: 4 }}
+                              onClick={() => handleEditClick(company)}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              style={{ marginLeft: 2 }}
+                              onClick={() => handleDeleteClick(company)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -389,6 +527,47 @@ function CompanyTable() {
           </Box>
         </Box>
       </Card>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this company? This action cannot be undone.
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleDeleteCancel}
+            color="primary"
+            variant="outlined"
+            disabled={actionLoading}
+            style={{ color: "#1976d2" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+            disabled={actionLoading}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <MuiAlert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </MuiAlert>
+      </Snackbar>
     </div>
   );
 }
