@@ -105,17 +105,14 @@ function CompanyTable() {
     setActionLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const putResponse = await fetch(
-        `http://localhost:5000/api/v2/company/${company.company_id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token,
-          },
-          body: JSON.stringify({ company_name: editCompanyName }),
-        }
-      );
+      const putResponse = await fetch(`${API}company/${company.company_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ company_name: editCompanyName }),
+      });
       if (!putResponse.ok) throw new Error("Failed to update company");
       setSnackbar({ open: true, message: "Company edited!", severity: "success" });
       setEditCompanyId(null);
@@ -142,13 +139,10 @@ function CompanyTable() {
     setActionLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const deleteResponse = await fetch(
-        `http://localhost:5000/api/v2/company/${companyToDelete.company_id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: token },
-        }
-      );
+      const deleteResponse = await fetch(`${API}company/${companyToDelete.company_id}`, {
+        method: "DELETE",
+        headers: { Authorization: token },
+      });
       if (!deleteResponse.ok) throw new Error("Failed to delete company");
       setSnackbar({ open: true, message: "Company deleted!", severity: "success" });
       setDeleteDialogOpen(false);
