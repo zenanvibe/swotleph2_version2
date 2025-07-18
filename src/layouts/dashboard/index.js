@@ -217,13 +217,13 @@ function Dashboard() {
                 variant={isMobile ? "h4" : "h2"}
                 sx={{ fontWeight: "bold", color: "#444" }}
               >
-                {userInfo.numberOfCandidates !== 0 ? (
-                  userInfo.numberOfCandidates
-                ) : (
+                {loading ? (
                   <>
                     {" "}
                     <CircularProgress size={20} sx={{ ml: 1, verticalAlign: "middle" }} />
                   </>
+                ) : (
+                  userInfo.numberOfCandidates
                 )}
               </Typography>
             </Box>

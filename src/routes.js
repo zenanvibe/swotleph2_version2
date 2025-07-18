@@ -3,6 +3,7 @@ import Landing from "layouts/landing/Landing";
 import Dashboard from "layouts/dashboard";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
+import NewPassword from "./layouts/authentication/reset-password/NewPassword";
 // import Interviewcandidate from "layouts/interviewcandidate/index";
 // import Teammembers from "layouts/teammembers/index";
 
@@ -50,6 +51,13 @@ const routes = [
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/userprofile/:id",
     component: <Profile />,
+  },
+  {
+    type: "route",
+    name: "Reset Password",
+    key: "reset-password",
+    route: "/reset-password",
+    component: <NewPassword />,
   },
   // {
   //   type: "collapse",
