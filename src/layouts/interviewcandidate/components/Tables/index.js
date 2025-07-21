@@ -93,7 +93,7 @@ function Tables() {
       const companyId = localStorage.getItem("company_id");
 
       try {
-        const response = await fetch(`${API}company/staff/${companyId}?role=candidate`, {
+        const response = await fetch(`${API}company/staff/${companyId}?role=interview_candidate`, {
           method: "GET",
           headers: {
             Authorization: `${token}`,

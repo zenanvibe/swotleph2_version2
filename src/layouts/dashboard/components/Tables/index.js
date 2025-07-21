@@ -155,12 +155,20 @@ function Tables() {
     const token = localStorage.getItem("token");
     const companyId = localStorage.getItem("company_id");
 
+    // Map role to backend-friendly value
+    let roleForBackend = newUser.role;
+    if (newUser.role === "interview candidate") {
+      roleForBackend = "interview_candidate";
+    } else if (newUser.role === "exisiting employee") {
+      roleForBackend = "existing_employee";
+    }
+
     // Append form data
     formData.append("name", newUser.name);
     formData.append("email", newUser.email);
     formData.append("phone", newUser.phone);
     formData.append("company_id", companyId);
-    formData.append("role", newUser.role);
+    formData.append("role", roleForBackend);
     formData.append("gender", newUser.gender);
     if (newUser.file) {
       formData.append("file", newUser.file);
